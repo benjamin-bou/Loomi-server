@@ -18,6 +18,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            BoxSeeder::class,
+        ]);
+
+        $this->call([
             OrderSeeder::class,
         ]);
     }
