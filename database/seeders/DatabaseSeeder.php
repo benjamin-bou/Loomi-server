@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            GiftCardSeeder::class,
             PaymentMethodTypeSeeder::class,
             OrderSeeder::class,
         ]);

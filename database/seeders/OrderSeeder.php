@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\GiftCard;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
@@ -34,7 +35,7 @@ class OrderSeeder extends Seeder
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
-                        'gift_card_id' => null,
+                        'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
                         // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
                         'amount' => $order->total_amount,
                     ]);
@@ -42,16 +43,16 @@ class OrderSeeder extends Seeder
 
                 case 3:
                     // Cas 3 : Carte cadeau partielle + paiement direct complémentaire
-                    $giftAmount = fake()->randomFloat(2, 5, $order->total_amount - 1); // partielle
-                    $remaining = $order->total_amount - $giftAmount;
+                    $giftCard = GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first();
+                    $remaining = $order->total_amount - $giftCard->remaining_amount;
 
                     // Paiement gift card
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
-                        'gift_card_id' => null,
+                        'gift_card_id' => GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first()->id,
                         // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
-                        'amount' => $giftAmount,
+                        'amount' => $giftCard->remaining_amount,
                     ]);
 
                     // Paiement complémentaire
@@ -61,6 +62,13 @@ class OrderSeeder extends Seeder
                         'gift_card_id' => null,
                         'amount' => $remaining,
                     ]);
+
+                    // Mettre à jour le montant restant de la carte cadeau
+                    $giftCard->remaining_amount -= $giftCard->remaining_amount;
+                    if ($giftCard->remaining_amount <= 0) {
+                        $giftCard->used_at = now();
+                    }
+                    $giftCard->save();
                     break;
             }
         });

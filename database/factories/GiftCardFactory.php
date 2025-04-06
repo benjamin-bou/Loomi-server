@@ -17,7 +17,12 @@ class GiftCardFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'code' => strtoupper($this->faker->unique()->bothify('???-###-???')),
+            'total_amount' => $this->faker->randomFloat(2, 5, 100),
+            'remaining_amount' => $this->faker->randomFloat(2, 5, 100),
+            'expiration_date' => $this->faker->dateTimeBetween('now', '+1 year'),
+            'used_at' => null,
+            'order_id' => null,
         ];
     }
 }

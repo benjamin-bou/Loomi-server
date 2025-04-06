@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('gift_cards', function (Blueprint $table) {
             $table->id();
+            $table->string('code')->unique();
+            $table->decimal('total_amount', 8, 2)->default(0.00);
+            $table->decimal('remaining_amount', 8, 2)->default(0.00);
+            $table->dateTime('expiration_date')->nullable();
+            $table->dateTime('used_at')->nullable();
+            $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('set null');
             $table->timestamps();
         });
     }
