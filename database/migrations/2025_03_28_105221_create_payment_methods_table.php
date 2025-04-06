@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->string('method_name');
+            $table->foreignId('payment_method_type_id')->constrained('payment_method_types')->onDelete('cascade');
+            $table->foreignId('gift_card_id')->nullable()->constrained('gift_cards')->onDelete('cascade');
             $table->decimal('amount', 6, 2)->default(0.00);
             $table->timestamps();
         });
