@@ -6,6 +6,7 @@ use App\Models\GiftCard;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
+use App\Models\BoxOrder;
 use App\Models\PaymentMethod;
 use App\Models\PaymentMethodType;
 
@@ -16,6 +17,8 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
+        BoxOrder::factory()->count(20)->create();
+
         Order::factory()->count(20)->create()->each(function ($order) {
             $case = rand(1, 3); // Tirage aléatoire du scénario
 

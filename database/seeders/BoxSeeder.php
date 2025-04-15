@@ -13,6 +13,9 @@ class BoxSeeder extends Seeder
      */
     public function run(): void
     {
-        Box::factory()->count(10)->create();
+        Box::factory()->count(10)->create()->each(function ($box) {
+            $box->base_price = (mt_rand(0, 1) === 0) ? 19.99 : 29.99;
+            $box->save();
+        });
     }
 }
