@@ -9,4 +9,9 @@ class Box extends Model
 {
     /** @use HasFactory<\Database\Factories\BoxFactory> */
     use HasFactory;
+
+    public function items()
+    {
+        return $this->belongsToMany(Item::class)->withPivot('quantity');
+    }
 }
