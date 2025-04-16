@@ -23,11 +23,18 @@ class AuthController extends Controller
             'last_name' => $validatedData['lastName'],
             'first_name' => $validatedData['firstName'],
             'email' => $validatedData['email'],
-            'role' => $validatedData['role'] ?? 'user', 
+            'role' => $validatedData['role'] ?? 'user',
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        return response()->json(['message' => 'User registered successfully'], 201);
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            // 'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => $user
+        ], 201);
     }
 
     public function login(Request $request)
