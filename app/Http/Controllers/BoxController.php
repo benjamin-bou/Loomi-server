@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Box;
-use Illuminate\Support\Facades\Auth; // added import
+use Illuminate\Support\Facades\Auth;
 
 class BoxController extends Controller
 {
@@ -28,5 +28,34 @@ class BoxController extends Controller
         }
 
         return response()->json(Box::all());
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $box = Box::findOrFail($id);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Box not found'], 404);
+        }
+
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'base_price' => 'required|numeric|min:0',
+            ]);
+
+            $box->update($validatedData);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update box'], 500);
+        }
+
+        return response()->json(['message' => 'Box updated successfully', 'box' => $box]);
     }
 }
