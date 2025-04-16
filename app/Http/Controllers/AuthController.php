@@ -27,7 +27,8 @@ class AuthController extends Controller
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        $customClaims = ['role' => $user->role];
+        $token = JWTAuth::fromUser($user, $customClaims);
 
         return response()->json([
             'access_token' => $token,
