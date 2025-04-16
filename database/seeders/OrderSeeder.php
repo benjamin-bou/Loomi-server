@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\GiftCard;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Order;
+use App\Models\BoxOrder;
 use App\Models\PaymentMethod;
+use App\Models\PaymentMethodType;
 
 class OrderSeeder extends Seeder
 {
@@ -14,6 +17,8 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
+        BoxOrder::factory()->count(20)->create();
+
         Order::factory()->count(20)->create()->each(function ($order) {
             $case = rand(1, 3); // Tirage aléatoire du scénario
 
@@ -22,7 +27,8 @@ class OrderSeeder extends Seeder
                     // Cas 1 : Paiement direct unique
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
-                        'method_name' => fake()->randomElement(['credit_card', 'paypal', 'bank_transfer']),
+                        'payment_method_type_id' => PaymentMethodType::where('name', '<>', 'Gift Card')->inRandomOrder()->first()->id,
+                        'gift_card_id' => null,
                         'amount' => $order->total_amount,
                     ]);
                     break;
@@ -31,29 +37,41 @@ class OrderSeeder extends Seeder
                     // Cas 2 : Carte cadeau uniquement
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
-                        'method_name' => 'gift_card',
+                        'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
+                        'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
+                        // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
                         'amount' => $order->total_amount,
                     ]);
                     break;
 
                 case 3:
                     // Cas 3 : Carte cadeau partielle + paiement direct complémentaire
-                    $giftAmount = fake()->randomFloat(2, 5, $order->total_amount - 1); // partielle
-                    $remaining = $order->total_amount - $giftAmount;
+                    $giftCard = GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first();
+                    $remaining = $order->total_amount - $giftCard->remaining_amount;
 
                     // Paiement gift card
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
-                        'method_name' => 'gift_card',
-                        'amount' => $giftAmount,
+                        'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
+                        'gift_card_id' => GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first()->id,
+                        // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
+                        'amount' => $giftCard->remaining_amount,
                     ]);
 
                     // Paiement complémentaire
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
-                        'method_name' => fake()->randomElement(['credit_card', 'paypal', 'bank_transfer']),
+                        'payment_method_type_id' => PaymentMethodType::where('name', '<>', 'Gift Card')->inRandomOrder()->first()->id,
+                        'gift_card_id' => null,
                         'amount' => $remaining,
                     ]);
+
+                    // Mettre à jour le montant restant de la carte cadeau
+                    $giftCard->remaining_amount -= $giftCard->remaining_amount;
+                    if ($giftCard->remaining_amount <= 0) {
+                        $giftCard->used_at = now();
+                    }
+                    $giftCard->save();
                     break;
             }
         });
