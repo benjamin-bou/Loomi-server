@@ -15,6 +15,7 @@ class BoxController extends Controller
 
     public function show($id)
     {
+        // $box = Box::with(['items', 'categories'])->findOrFail($id);
         $box = Box::with('items')->findOrFail($id);
         return response()->json($box);
     }
