@@ -9,4 +9,9 @@ class PaymentMethod extends Model
 {
     /** @use HasFactory<\Database\Factories\PaymentMethodFactory> */
     use HasFactory;
+
+    public function paymentMethodType()
+    {
+        return $this->belongsTo(PaymentMethodType::class);
+    }
 }
