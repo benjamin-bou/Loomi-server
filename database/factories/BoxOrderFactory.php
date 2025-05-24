@@ -18,7 +18,8 @@ class BoxOrderFactory extends Factory
     {
         return [
             'order_id' => \App\Models\Order::factory(),
-            'box_id' => \App\Models\Box::factory(),
+            // Récupère une box existante aléatoire
+            'box_id' => \App\Models\Box::inRandomOrder()->first()?->id ?? \App\Models\Box::factory(),
             'quantity' => $this->faker->numberBetween(1, 3),
         ];
     }

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->integer('quantity')->default(0);
             $table->date('available_from')->nullable();
+            $table->unsignedBigInteger('box_category_id')->nullable();
+            $table->foreign('box_category_id')->references('id')->on('box_categories')->nullOnDelete();
             $table->timestamps();
         });
     }

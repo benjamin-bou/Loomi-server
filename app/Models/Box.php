@@ -20,10 +20,15 @@ class Box extends Model
         'description',
         'base_price',
         'active',
+        'box_category_id',
     ];
 
     public function items()
     {
         return $this->belongsToMany(Item::class)->withPivot('quantity');
+    }
+    public function category()
+    {
+        return $this->belongsTo(BoxCategory::class, 'box_category_id');
     }
 }
