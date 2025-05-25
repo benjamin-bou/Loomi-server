@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\PaymentMethodType;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -20,7 +21,7 @@ class OrderController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        $orders = $user->orders()->with(['paymentMethods.paymentMethodType'])->get();
+        $orders = $user->orders()->with(['paymentMethods.paymentMethodType'])->orderBy('created_at', 'desc')->get();
         return response()->json([
             'user' => $user,
             'orders' => $orders
@@ -45,7 +46,65 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        // Logic to store a new order
+        $user = Auth::user();
+        $data = $request->all();
+
+        // Si le front envoie tout dans $data['body'] (string JSON), il faut le décoder
+        $items = [];
+        $paymentMethod = null;
+        if (!empty($data['body'])) {
+            $body = json_decode($data['body'], true);
+            $items = $body['items'] ?? [];
+            $paymentMethod = $body['payment_method'] ?? null;
+        }
+
+        Log::info('OrderController@store', [
+            'user_id' => $user ? $user->id : null,
+            'items' => $items,
+            'payment_method' => $paymentMethod,
+            'data' => $data,
+        ]);
+
+        if (!$user || empty($items)) {
+            return response()->json(['error' => 'Utilisateur non authentifié ou panier vide'], 400);
+        }
+
+        // Calcul du total
+        $total = 0;
+        foreach ($items as $item) {
+            $total += ($item['price'] ?? $item['base_price'] ?? 0) * ($item['quantity'] ?? 1);
+        }
+
+        // Création de la commande
+        $order = new Order();
+        $order->user_id = $user->id;
+        $order->order_number = uniqid('ORD-');
+        $order->total_amount = $total;
+        $order->status = 'pending';
+        $order->active = true;
+        $order->save();
+
+        // Ajout des boxes à la commande (table pivot box_orders)
+        foreach ($items as $item) {
+            if (($item['type'] ?? null) === 'box') {
+                $order->boxes()->attach($item['id'], ['quantity' => $item['quantity'] ?? 1]);
+            }
+            // Ici on peut gérer d'autres types (giftcard, subscription, etc.)
+        }
+
+        // (Optionnel) Enregistrer le moyen de paiement choisi
+        if ($paymentMethod) {
+            // On suppose que PaymentMethodType contient les types (visa, cb, etc.)
+            $paymentType = PaymentMethodType::where('name', $paymentMethod)->first();
+            if ($paymentType) {
+                $order->paymentMethods()->create([
+                    'payment_method_type_id' => $paymentType->id,
+                    'amount' => $total,
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true, 'order_id' => $order->id]);
     }
 
     /**

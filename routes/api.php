@@ -17,6 +17,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/my-subscription', [SubscriptionController::class, 'current']);
     Route::get('informations', [AuthController::class, 'me']);
 
+    Route::post('/order', [OrderController::class, 'store']);
+
     Route::get('/admin/boxes', [BoxController::class, 'adminIndex']);
     Route::put('/admin/boxes/{id}', [BoxController::class, 'update']);
 });

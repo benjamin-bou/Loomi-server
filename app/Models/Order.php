@@ -18,4 +18,9 @@ class Order extends Model
     {
         return $this->belongsTo(Subscription::class, 'subscription_id');
     }
+    // Ajout de la relation boxes() pour la table pivot box_orders
+    public function boxes()
+    {
+        return $this->belongsToMany(\App\Models\Box::class, 'box_orders', 'order_id', 'box_id')->withPivot('quantity');
+    }
 }

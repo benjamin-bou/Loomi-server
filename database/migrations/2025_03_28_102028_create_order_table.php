@@ -26,6 +26,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->string('status')->default('pending');
             $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->onDelete('set null');
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }
