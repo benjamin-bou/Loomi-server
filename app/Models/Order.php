@@ -14,4 +14,8 @@ class Order extends Model
     {
         return $this->hasMany(PaymentMethod::class);
     }
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_id');
+    }
 }
