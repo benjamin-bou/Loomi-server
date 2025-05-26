@@ -97,4 +97,13 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
     }
+
+    public function refresh()
+    {
+        return response()->json([
+            'access_token' => JWTAuth::parseToken()->refresh(),
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60
+        ]);
+    }
 }

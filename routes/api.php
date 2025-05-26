@@ -8,6 +8,7 @@ use App\Http\Controllers\SubscriptionController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);
