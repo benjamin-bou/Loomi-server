@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BoxController;
+use App\Http\Controllers\GiftCardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SubscriptionController;
 
@@ -12,6 +13,8 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);
+
+Route::get('gift-cards', [GiftCardController::class, 'index']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
