@@ -23,4 +23,13 @@ class Order extends Model
     {
         return $this->belongsToMany(\App\Models\Box::class, 'box_orders', 'order_id', 'box_id')->withPivot('quantity');
     }
+    public function boxOrders()
+    {
+        return $this->hasMany(\App\Models\BoxOrder::class, 'order_id');
+    }
+
+    public function giftCard()
+    {
+        return $this->belongsTo(GiftCard::class, 'gift_card_id');
+    }
 }

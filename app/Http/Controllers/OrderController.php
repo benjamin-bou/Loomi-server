@@ -21,7 +21,10 @@ class OrderController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        $orders = $user->orders()->with(['paymentMethods.paymentMethodType'])->orderBy('created_at', 'desc')->get();
+        $orders = $user->orders()->with([
+            'paymentMethods.paymentMethodType',
+            'boxOrders.box',
+        ])->orderBy('created_at', 'desc')->get();
         return response()->json([
             'user' => $user,
             'orders' => $orders
@@ -49,13 +52,12 @@ class OrderController extends Controller
         $user = Auth::user();
         $data = $request->all();
 
-        // Si le front envoie tout dans $data['body'] (string JSON), il faut le décoder
         $items = [];
         $paymentMethod = null;
-        if (!empty($data['body'])) {
-            $body = json_decode($data['body'], true);
-            $items = $body['items'] ?? [];
-            $paymentMethod = $body['payment_method'] ?? null;
+        if (!empty($data)) {
+            // $body = json_decode($data['body'], true);
+            $items = $data['items'] ?? [];
+            $paymentMethod = $data['payment_method'] ?? null;
         }
 
         Log::info('OrderController@store', [
