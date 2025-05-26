@@ -76,4 +76,25 @@ class AuthController extends Controller
     {
         return response()->json(Auth::user());
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $validatedData = $request->validate([
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'zipcode' => 'nullable|string|max:10',
+        ]);
+        $user->address = $validatedData['address'] ?? $user->address;
+        $user->city = $validatedData['city'] ?? $user->city;
+        $user->zipcode = $validatedData['zipcode'] ?? $user->zipcode;
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+    }
 }
