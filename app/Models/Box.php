@@ -10,8 +10,25 @@ class Box extends Model
     /** @use HasFactory<\Database\Factories\BoxFactory> */
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'description',
+        'base_price',
+        'active',
+        'box_category_id',
+    ];
+
     public function items()
     {
         return $this->belongsToMany(Item::class)->withPivot('quantity');
+    }
+    public function category()
+    {
+        return $this->belongsTo(BoxCategory::class, 'box_category_id');
     }
 }

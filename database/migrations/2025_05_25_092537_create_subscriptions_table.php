@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('boxes', function (Blueprint $table) {
+        Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description')->nullable();
-            $table->decimal('base_price', 6, 2);
+            $table->integer('duration'); // durée en mois
+            $table->decimal('base_price', 8, 2);
             $table->boolean('active')->default(true);
-            $table->integer('quantity')->default(0);
-            $table->date('available_from')->nullable();
-            $table->unsignedBigInteger('box_category_id')->nullable();
-            $table->foreign('box_category_id')->references('id')->on('box_categories')->nullOnDelete();
+            $table->boolean('renouvellement')->default(false);
+            $table->foreignId('subscription_type_id')->constrained('subscription_types')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('boxes');
+        Schema::dropIfExists('subscriptions');
     }
 };

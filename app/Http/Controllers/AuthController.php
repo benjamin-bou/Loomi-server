@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -27,7 +28,8 @@ class AuthController extends Controller
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        $customClaims = ['role' => $user->role, 'firstName' => $user->first_name, 'lastName' => $user->last_name];
+        $token = JWTAuth::fromUser($user, $customClaims);
 
         return response()->json([
             'access_token' => $token,
@@ -41,15 +43,67 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = Auth::attempt($credentials)) {
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:8',
+        ]);
+
+        // Check if the user is already logged in
+        if (Auth::check()) {
+            return response()->json(['message' => 'User already logged in'], 200);
+        }
+
+        Log::info('Login attempt', ['email' => $credentials['email'], 'password' => $credentials['password'], Auth::attempt($credentials)]);
+
+        // Tente l'authentification
+        if (!Auth::attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
-        return response()->json(['access_token' => $token, 'token_type' => 'Bearer'], 200);
+        // Récupère l'utilisateur authentifié
+        $user = Auth::user();
+        $customClaims = ['role' => $user->role, 'firstName' => $user->first_name, 'lastName' => $user->last_name];
+        $token = JWTAuth::fromUser($user, $customClaims);
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
+        ], 200);
     }
 
     public function me()
     {
         return response()->json(Auth::user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $validatedData = $request->validate([
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'zipcode' => 'nullable|string|max:10',
+        ]);
+        $user->address = $validatedData['address'] ?? $user->address;
+        $user->city = $validatedData['city'] ?? $user->city;
+        $user->zipcode = $validatedData['zipcode'] ?? $user->zipcode;
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+    }
+
+    public function refresh()
+    {
+        return response()->json([
+            'access_token' => JWTAuth::parseToken()->refresh(),
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60
+        ]);
     }
 }

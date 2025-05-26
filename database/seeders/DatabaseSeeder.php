@@ -17,12 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            BoxItemSeeder::class,
+            BoxCategorySeeder::class,
             BoxSeeder::class,
             GiftCardSeeder::class,
             PaymentMethodTypeSeeder::class,
             OrderSeeder::class,
             ItemSeeder::class,
-            BoxItemSeeder::class,
+            SubscriptionTypeSeeder::class,
         ]);
     }
 }
