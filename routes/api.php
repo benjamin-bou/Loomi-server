@@ -22,6 +22,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/my-subscription', [SubscriptionController::class, 'current']);
+    Route::post('/cancel-subscription', [SubscriptionController::class, 'cancel']);
     Route::get('informations', [AuthController::class, 'me']);
 
     Route::post('/order', [OrderController::class, 'store']);

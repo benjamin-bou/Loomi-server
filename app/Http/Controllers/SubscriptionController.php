@@ -35,4 +35,37 @@ class SubscriptionController extends Controller
             'user' => $user
         ]);
     }
+
+    // Annuler l'abonnement en cours
+    public function cancel()
+    {
+        $user = Auth::user();
+        $order = $user->orders()->where('active', true)->whereNotNull('subscription_id')->latest()->first();
+
+        if (!$order || !$order->subscription) {
+            return response()->json(['error' => 'Aucun abonnement actif trouvé'], 404);
+        }
+
+        $subscription = $order->subscription;
+
+        // Vérifier si l'abonnement peut être annulé
+        if ($subscription->status === 'cancelled') {
+            return response()->json(['error' => 'Cet abonnement est déjà annulé'], 400);
+        }
+
+        if ($subscription->status === 'expired') {
+            return response()->json(['error' => 'Cet abonnement a déjà expiré'], 400);
+        }
+
+        // Annuler l'abonnement
+        $subscription->update([
+            'status' => 'cancelled',
+            'auto_renew' => false
+        ]);
+
+        return response()->json([
+            'message' => 'Abonnement annulé avec succès',
+            'subscription' => $subscription->fresh()->load('type')
+        ]);
+    }
 }
