@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\PaymentMethodType;
+use App\Models\GiftCard;
+use App\Models\GiftCardType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -24,7 +27,7 @@ class OrderController extends Controller
         $orders = $user->orders()->with([
             'paymentMethods.paymentMethodType',
             'boxOrders.box',
-            'boxOrders.giftCard',
+            'createdGiftCards.giftCardType',
         ])->orderBy('created_at', 'desc')->get();
         return response()->json([
             'user' => $user,
@@ -92,7 +95,13 @@ class OrderController extends Controller
             if (($item['type'] ?? null) === 'box') {
                 $order->boxes()->attach($item['id'], ['quantity' => $item['quantity'] ?? 1]);
             }
-            // Ici on peut gérer d'autres types (giftcard, subscription, etc.)
+
+            // Gestion des gift card types : création automatique de gift card
+            if (($item['type'] ?? null) === 'giftcard') {
+                $this->createGiftCardsForOrder($order, $item);
+            }
+
+            // Ici on peut gérer d'autres types (subscription, etc.)
         }
 
         // (Optionnel) Enregistrer le moyen de paiement choisi
@@ -142,5 +151,72 @@ class OrderController extends Controller
     public function update(Request $request, $id)
     {
         // Logic to update an existing order
+    }
+
+    /**
+     * Créer automatiquement une gift card lorsqu'un gift card type est commandé
+     *
+     * @param  \App\Models\Order  $order
+     * @param  array  $item
+     * @return void
+     */
+    private function createGiftCardsForOrder(Order $order, array $item)
+    {
+        try {
+            // Vérifier si le gift card type existe
+            $giftCardType = GiftCardType::find($item['id']);
+            if (!$giftCardType) {
+                Log::warning('GiftCardType not found for creation', [
+                    'giftcard_type_id' => $item['id'],
+                    'order_id' => $order->id
+                ]);
+                return;
+            }
+
+            $quantity = $item['quantity'] ?? 1;
+
+            // Créer une gift card pour chaque quantité commandée
+            for ($i = 0; $i < $quantity; $i++) {
+                $giftCard = new GiftCard();
+                $giftCard->code = $this->generateUniqueGiftCardCode();
+                $giftCard->gift_card_type_id = $giftCardType->id;
+                $giftCard->order_id = $order->id;
+                $giftCard->expiration_date = now()->addYear(); // Expire dans 1 an
+                $giftCard->used_at = null;
+                $giftCard->save();
+
+                Log::info('GiftCard created automatically', [
+                    'gift_card_id' => $giftCard->id,
+                    'code' => $giftCard->code,
+                    'gift_card_type' => $giftCardType->name,
+                    'order_id' => $order->id,
+                    'user_id' => $order->user_id
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating gift card for order', [
+                'error' => $e->getMessage(),
+                'order_id' => $order->id,
+                'giftcard_type_id' => $item['id'] ?? null
+            ]);
+
+            // On peut décider de ne pas faire échouer la commande si la création de gift card échoue
+            // ou lever une exception selon les besoins métier
+        }
+    }
+
+    /**
+     * Générer un code unique pour la gift card
+     *
+     * @return string
+     */
+    private function generateUniqueGiftCardCode()
+    {
+        do {
+            // Format: GIFT-XXXX-XXXX (où X = lettre ou chiffre)
+            $code = 'GIFT-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
+        } while (GiftCard::where('code', $code)->exists());
+
+        return $code;
     }
 }

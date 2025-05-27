@@ -32,4 +32,12 @@ class Order extends Model
     {
         return $this->belongsTo(GiftCard::class, 'gift_card_id');
     }
+
+    /**
+     * Relation vers les gift cards créées par cette commande
+     */
+    public function createdGiftCards()
+    {
+        return $this->hasMany(GiftCard::class, 'order_id');
+    }
 }

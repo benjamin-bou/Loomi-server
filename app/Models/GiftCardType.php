@@ -12,6 +12,8 @@ class GiftCardType extends Model
     protected $fillable = [
         'name',
         'description',
+        'base_price',
+        'active',
     ];
 
     public function giftCards()
