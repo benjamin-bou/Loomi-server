@@ -58,21 +58,36 @@ class OrderController extends Controller
 
         $items = [];
         $paymentMethod = null;
+        $giftCardId = null;
         if (!empty($data)) {
             // $body = json_decode($data['body'], true);
             $items = $data['items'] ?? [];
             $paymentMethod = $data['payment_method'] ?? null;
+            $giftCardId = $data['gift_card_id'] ?? null;
         }
 
         Log::info('OrderController@store', [
             'user_id' => $user ? $user->id : null,
             'items' => $items,
             'payment_method' => $paymentMethod,
+            'gift_card_id' => $giftCardId,
             'data' => $data,
         ]);
 
         if (!$user || empty($items)) {
             return response()->json(['error' => 'Utilisateur non authentifié ou panier vide'], 400);
+        }
+
+        // Si paiement par carte cadeau, vérifier qu'elle est valide
+        $usedGiftCard = null;
+        if ($giftCardId) {
+            $usedGiftCard = GiftCard::find($giftCardId);
+            if (
+                !$usedGiftCard || $usedGiftCard->used_at ||
+                ($usedGiftCard->expiration_date && $usedGiftCard->expiration_date < now())
+            ) {
+                return response()->json(['error' => 'Carte cadeau invalide ou déjà utilisée'], 400);
+            }
         }
 
         // Calcul du total
@@ -101,11 +116,47 @@ class OrderController extends Controller
                 $this->createGiftCardsForOrder($order, $item);
             }
 
+            // Gestion de l'utilisation de carte cadeau
+            if (($item['type'] ?? null) === 'giftcard_usage') {
+                // Vérifier que la carte cadeau existe et est valide
+                $giftCard = GiftCard::where('code', $item['giftCardCode'] ?? '')->first();
+                if ($giftCard && !$giftCard->used_at) {
+                    // Marquer la carte comme utilisée
+                    $giftCard->used_at = now();
+                    $giftCard->save();
+
+                    Log::info('GiftCard used via cart', [
+                        'gift_card_id' => $giftCard->id,
+                        'code' => $giftCard->code,
+                        'order_id' => $order->id,
+                        'user_id' => $user->id
+                    ]);
+                } else {
+                    Log::warning('Invalid gift card in cart', [
+                        'gift_card_code' => $item['giftCardCode'] ?? 'missing',
+                        'order_id' => $order->id
+                    ]);
+                }
+            }
+
             // Ici on peut gérer d'autres types (subscription, etc.)
         }
 
+        // Marquer la carte cadeau comme utilisée si paiement par carte cadeau
+        if ($usedGiftCard) {
+            $usedGiftCard->used_at = now();
+            $usedGiftCard->save();
+
+            Log::info('GiftCard used for payment', [
+                'gift_card_id' => $usedGiftCard->id,
+                'code' => $usedGiftCard->code,
+                'order_id' => $order->id,
+                'user_id' => $user->id
+            ]);
+        }
+
         // (Optionnel) Enregistrer le moyen de paiement choisi
-        if ($paymentMethod) {
+        if ($paymentMethod && !$usedGiftCard) {
             // On suppose que PaymentMethodType contient les types (visa, cb, etc.)
             $paymentType = PaymentMethodType::where('name', $paymentMethod)->first();
             if ($paymentType) {

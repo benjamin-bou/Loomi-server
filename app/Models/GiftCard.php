@@ -16,6 +16,7 @@ class GiftCard extends Model
         'used_at',
         'order_id',
         'gift_card_type_id',
+        'activated_by',
     ];
 
     /**
@@ -32,5 +33,13 @@ class GiftCard extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relation vers l'utilisateur qui a activé la carte
+     */
+    public function activatedBy()
+    {
+        return $this->belongsTo(User::class, 'activated_by');
     }
 }

@@ -21,6 +21,7 @@ class GiftCardFactory extends Factory
             'expiration_date' => $this->faker->dateTimeBetween('now', '+1 year'),
             'used_at' => null,
             'order_id' => null,
+            'activated_by' => null, // Les cartes créées par le factory ne sont pas activées par défaut
         ];
     }
 }

@@ -16,6 +16,7 @@ Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);
 
 Route::get('gift-cards', [GiftCardController::class, 'index']);
+Route::post('gift-cards/activate', [GiftCardController::class, 'activate']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
@@ -26,6 +27,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/order', [OrderController::class, 'store']);
     Route::post('/profile', [AuthController::class, 'updateProfile']);
 
+    Route::get('/my-gift-cards', [GiftCardController::class, 'getUserGiftCards']);
 
     Route::get('/admin/boxes', [BoxController::class, 'adminIndex']);
     Route::put('/admin/boxes/{id}', [BoxController::class, 'update']);
