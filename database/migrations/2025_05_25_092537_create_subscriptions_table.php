@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->integer('duration'); // durée en mois
-            $table->decimal('base_price', 8, 2);
-            $table->boolean('active')->default(true);
-            $table->boolean('renouvellement')->default(false);
             $table->foreignId('subscription_type_id')->constrained('subscription_types')->onDelete('cascade');
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->string('status')->default('active'); // active, paused, cancelled, expired
+            $table->boolean('auto_renew')->default(false);
             $table->timestamps();
         });
     }

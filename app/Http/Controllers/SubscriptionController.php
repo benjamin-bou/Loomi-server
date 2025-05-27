@@ -6,6 +6,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
@@ -27,7 +28,11 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
         $order = $user->orders()->where('active', true)->whereNotNull('subscription_id')->latest()->first();
-        $subscription = $order ? $order->subscription()->with(['type', 'deliveries.box'])->first() : null;
-        return response()->json($subscription);
+        $subscription = $order ? $order->subscription()->with(['type'])->first() : null;
+
+        return response()->json([
+            'subscription' => $subscription,
+            'user' => $user
+        ]);
     }
 }

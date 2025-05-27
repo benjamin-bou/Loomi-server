@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\PaymentMethodType;
 use App\Models\GiftCard;
 use App\Models\GiftCardType;
+use App\Models\Subscription;
+use App\Models\SubscriptionType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -139,7 +141,46 @@ class OrderController extends Controller
                 }
             }
 
-            // Ici on peut gérer d'autres types (subscription, etc.)
+            // Gestion des abonnements
+            if (($item['type'] ?? null) === 'subscription') {
+                $subscriptionType = SubscriptionType::find($item['id']);
+
+                if ($subscriptionType) {
+                    // Calculer les dates de début et fin
+                    $startDate = now()->toDateString();
+                    $endDate = now()->addMonths($this->getSubscriptionDurationInMonths($subscriptionType->recurrence))->toDateString();
+
+                    // Créer l'abonnement utilisateur
+                    $subscription = Subscription::create([
+                        'subscription_type_id' => $subscriptionType->id,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'status' => 'active',
+                        'auto_renew' => false,
+                    ]);
+
+                    // Associer l'abonnement à la commande
+                    $order->subscription_id = $subscription->id;
+                    $order->status = 'completed';
+                    $order->save();
+
+                    Log::info('User subscription created', [
+                        'subscription_id' => $subscription->id,
+                        'subscription_type_label' => $subscriptionType->label,
+                        'order_id' => $order->id,
+                        'user_id' => $user->id,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate
+                    ]);
+                } else {
+                    Log::warning('Subscription type not found for order', [
+                        'subscription_type_id' => $item['id'],
+                        'order_id' => $order->id
+                    ]);
+                }
+            }
+
+            // Ici on peut gérer d'autres types si nécessaire
         }
 
         // Marquer la carte cadeau comme utilisée si paiement par carte cadeau
@@ -168,40 +209,6 @@ class OrderController extends Controller
         }
 
         return response()->json(['success' => true, 'order_id' => $order->id]);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        // Logic to display a specific order by ID
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        // Logic to show form for editing an existing order
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        // Logic to update an existing order
     }
 
     /**
@@ -250,9 +257,6 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'giftcard_type_id' => $item['id'] ?? null
             ]);
-
-            // On peut décider de ne pas faire échouer la commande si la création de gift card échoue
-            // ou lever une exception selon les besoins métier
         }
     }
 
@@ -269,5 +273,27 @@ class OrderController extends Controller
         } while (GiftCard::where('code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Calculer la durée d'un abonnement en mois selon sa récurrence
+     *
+     * @param  string  $recurrence
+     * @return int
+     */
+    private function getSubscriptionDurationInMonths($recurrence)
+    {
+        switch ($recurrence) {
+            case 'monthly':
+                return 1;
+            case 'quarterly':
+                return 3;
+            case 'semi-annual':
+                return 6;
+            case 'annual':
+                return 12;
+            default:
+                return 1; // Par défaut, 1 mois
+        }
     }
 }
