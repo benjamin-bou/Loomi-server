@@ -56,7 +56,7 @@ class AuthController extends Controller
         Log::info('Login attempt', ['email' => $credentials['email'], 'password' => $credentials['password'], Auth::attempt($credentials)]);
 
         // Tente l'authentification
-        if (!Auth::attempt($credentials)) {
+        if (!Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -64,6 +64,9 @@ class AuthController extends Controller
         $user = Auth::user();
         $customClaims = ['role' => $user->role, 'firstName' => $user->first_name, 'lastName' => $user->last_name];
         $token = JWTAuth::fromUser($user, $customClaims);
+
+        // Déconnecte la session Laravel pour éviter les conflits avec JWT (important pour le refresh)
+        Auth::logout();
 
         return response()->json([
             'access_token' => $token,
@@ -98,12 +101,21 @@ class AuthController extends Controller
         return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
     }
 
-    public function refresh()
+    public function refresh(Request $request)
     {
-        return response()->json([
-            'access_token' => JWTAuth::parseToken()->refresh(),
-            'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60
-        ]);
+        try {
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json(['error' => 'Token not provided'], 401);
+            }
+            $newToken = JWTAuth::setToken($token)->refresh();
+            return response()->json([
+                'access_token' => $newToken,
+                'token_type' => 'bearer',
+                'expires_in' => config('jwt.ttl') * 60
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Could not refresh token', 'message' => $e->getMessage()], 401);
+        }
     }
 }

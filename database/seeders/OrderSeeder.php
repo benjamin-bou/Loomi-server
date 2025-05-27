@@ -29,49 +29,38 @@ class OrderSeeder extends Seeder
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', '<>', 'Gift Card')->inRandomOrder()->first()->id,
                         'gift_card_id' => null,
-                        'amount' => $order->total_amount,
+                        'amount' => null, // plus de montant
                     ]);
                     break;
 
                 case 2:
-                    // Cas 2 : Carte cadeau uniquement
+                    // Cas 2 : Carte cadeau uniquement (offre 1 box ou 1 abonnement)
+                    $giftCard = GiftCard::inRandomOrder()->first();
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
-                        'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
-                        // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
-                        'amount' => $order->total_amount,
+                        'gift_card_id' => $giftCard ? $giftCard->id : null,
+                        'amount' => null, // plus de montant
                     ]);
                     break;
 
                 case 3:
-                    // Cas 3 : Carte cadeau partielle + paiement direct complémentaire
-                    $giftCard = GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first();
-                    $remaining = $order->total_amount - $giftCard->remaining_amount;
-
+                    // Cas 3 : Paiement direct + carte cadeau (ex: 1 box offerte + 1 box achetée)
+                    $giftCard = GiftCard::inRandomOrder()->first();
                     // Paiement gift card
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', 'Gift Card')->first()->id,
-                        'gift_card_id' => GiftCard::where('remaining_amount', '<', $order->total_amount)->inRandomOrder()->first()->id,
-                        // 'gift_card_id' => GiftCard::inRandomOrder()->first()->id,
-                        'amount' => $giftCard->remaining_amount,
+                        'gift_card_id' => $giftCard ? $giftCard->id : null,
+                        'amount' => null, // plus de montant
                     ]);
-
                     // Paiement complémentaire
                     PaymentMethod::factory()->create([
                         'order_id' => $order->id,
                         'payment_method_type_id' => PaymentMethodType::where('name', '<>', 'Gift Card')->inRandomOrder()->first()->id,
                         'gift_card_id' => null,
-                        'amount' => $remaining,
+                        'amount' => null, // plus de montant
                     ]);
-
-                    // Mettre à jour le montant restant de la carte cadeau
-                    $giftCard->remaining_amount -= $giftCard->remaining_amount;
-                    if ($giftCard->remaining_amount <= 0) {
-                        $giftCard->used_at = now();
-                    }
-                    $giftCard->save();
                     break;
             }
         });

@@ -24,6 +24,7 @@ class OrderController extends Controller
         $orders = $user->orders()->with([
             'paymentMethods.paymentMethodType',
             'boxOrders.box',
+            'boxOrders.giftCard',
         ])->orderBy('created_at', 'desc')->get();
         return response()->json([
             'user' => $user,
