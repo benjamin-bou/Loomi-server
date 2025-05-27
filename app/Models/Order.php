@@ -15,6 +15,7 @@ class Order extends Model
         'order_number',
         'total_amount',
         'status',
+        'delivery_date',
         'gift_card_id',
         'subscription_id',
         'active',

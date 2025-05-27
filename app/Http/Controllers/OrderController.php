@@ -105,6 +105,20 @@ class OrderController extends Controller
         $order->total_amount = $total;
         $order->status = 'pending';
         $order->active = true;
+
+        // Calculer la date de livraison si la commande contient des boîtes
+        $hasBoxes = false;
+        foreach ($items as $item) {
+            if (($item['type'] ?? null) === 'box') {
+                $hasBoxes = true;
+                break;
+            }
+        }
+
+        if ($hasBoxes) {
+            $order->delivery_date = $this->calculateDeliveryDate();
+        }
+
         $order->save();
 
         // Ajout des boxes à la commande (table pivot box_orders)
@@ -295,5 +309,26 @@ class OrderController extends Controller
             default:
                 return 1; // Par défaut, 1 mois
         }
+    }
+
+    /**
+     * Calculer la date de livraison (7 jours ouvrés après la commande)
+     *
+     * @return string
+     */
+    private function calculateDeliveryDate()
+    {
+        $date = now();
+        $daysAdded = 0;
+
+        while ($daysAdded < 7) {
+            $date->addDay();
+            // Ignorer les weekends (samedi = 6, dimanche = 0)
+            if ($date->dayOfWeek !== 0 && $date->dayOfWeek !== 6) {
+                $daysAdded++;
+            }
+        }
+
+        return $date->toDateString();
     }
 }
