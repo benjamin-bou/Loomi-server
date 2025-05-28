@@ -124,6 +124,13 @@ class OrderController extends Controller
         // Ajout des boxes à la commande (table pivot box_orders)
         foreach ($items as $item) {
             if (($item['type'] ?? null) === 'box') {
+                Log::info('Adding box to order', [
+                    'order_id' => $order->id,
+                    'box_id' => $item['id'],
+                    'box_name' => $item['name'] ?? 'Unknown',
+                    'quantity' => $item['quantity'] ?? 1,
+                    'user_id' => $user->id
+                ]);
                 $order->boxes()->attach($item['id'], ['quantity' => $item['quantity'] ?? 1]);
             }
 
