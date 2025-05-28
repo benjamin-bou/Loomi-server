@@ -56,45 +56,58 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $data = $request->all();
-
-        $items = [];
-        $paymentMethod = null;
-        $giftCardId = null;
-        if (!empty($data)) {
-            // $body = json_decode($data['body'], true);
-            $items = $data['items'] ?? [];
-            $paymentMethod = $data['payment_method'] ?? null;
-            $giftCardId = $data['gift_card_id'] ?? null;
-        }
+        $items = $request->input('items', []);
+        $paymentMethod = $request->input('payment_method');
+        $giftCardId = $request->input('gift_card_id');
 
         Log::info('OrderController@store', [
             'user_id' => $user ? $user->id : null,
-            'items' => $items,
+            'items_count' => count($items),
             'payment_method' => $paymentMethod,
             'gift_card_id' => $giftCardId,
-            'data' => $data,
+            'has_gift_card_in_items' => collect($items)->contains('type', 'giftcard_usage'),
         ]);
 
         if (!$user || empty($items)) {
             return response()->json(['error' => 'Utilisateur non authentifié ou panier vide'], 400);
         }
 
+        // Vérifier s'il y a une carte cadeau utilisée dans les items du panier
+        $giftCardUsedInCart = null;
+        foreach ($items as $item) {
+            if (($item['type'] ?? null) === 'giftcard_usage' && !empty($item['giftCardCode'])) {
+                $giftCardUsedInCart = GiftCard::where('code', $item['giftCardCode'])->first();
+                break;
+            }
+        }
+
         // Si paiement par carte cadeau, vérifier qu'elle est valide
         $usedGiftCard = null;
         if ($giftCardId) {
             $usedGiftCard = GiftCard::find($giftCardId);
+        } elseif ($giftCardUsedInCart) {
+            $usedGiftCard = $giftCardUsedInCart;
+        }
+
+        if ($usedGiftCard) {
             if (
-                !$usedGiftCard || $usedGiftCard->used_at ||
+                $usedGiftCard->used_at ||
                 ($usedGiftCard->expiration_date && $usedGiftCard->expiration_date < now())
             ) {
                 return response()->json(['error' => 'Carte cadeau invalide ou déjà utilisée'], 400);
             }
         }
 
-        // Calcul du total
+        // Calcul du total en excluant les items gratuits (payés avec carte cadeau)
         $total = 0;
         foreach ($items as $item) {
+            // Exclure les cartes cadeaux utilisées et les boxes payées avec carte cadeau
+            if (($item['type'] ?? null) === 'giftcard_usage') {
+                continue;
+            }
+            if (($item['type'] ?? null) === 'box' && ($item['paidWithGiftCard'] ?? false)) {
+                continue;
+            }
             $total += ($item['price'] ?? $item['base_price'] ?? 0) * ($item['quantity'] ?? 1);
         }
 
@@ -217,9 +230,23 @@ class OrderController extends Controller
             ]);
         }
 
-        // (Optionnel) Enregistrer le moyen de paiement choisi
-        if ($paymentMethod && !$usedGiftCard) {
-            // On suppose que PaymentMethodType contient les types (visa, cb, etc.)
+        // Enregistrer les moyens de paiement
+        $hasPayableItems = $total > 0; // Y a-t-il des items à payer ?
+
+        if ($usedGiftCard) {
+            // Enregistrer le paiement par carte cadeau
+            $giftCardPaymentType = PaymentMethodType::where('name', 'Gift Card')->first();
+            if ($giftCardPaymentType) {
+                $order->paymentMethods()->create([
+                    'payment_method_type_id' => $giftCardPaymentType->id,
+                    'gift_card_id' => $usedGiftCard->id,
+                    'amount' => 0, // Le montant est gratuit avec carte cadeau
+                ]);
+            }
+        }
+
+        if ($paymentMethod && $hasPayableItems) {
+            // Enregistrer le paiement classique pour les items payants
             $paymentType = PaymentMethodType::where('name', $paymentMethod)->first();
             if ($paymentType) {
                 $order->paymentMethods()->create([
