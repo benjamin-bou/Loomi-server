@@ -28,6 +28,15 @@ class GiftCardController extends Controller
      */
     public function activate(Request $request)
     {
+        // Vérifier que l'utilisateur est connecté
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous devez être connecté pour activer une carte cadeau'
+            ], 401);
+        }
+
         $request->validate([
             'code' => 'required|string|max:20'
         ]);
