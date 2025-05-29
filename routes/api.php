@@ -16,6 +16,7 @@ Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);
 
 Route::get('gift-cards', [GiftCardController::class, 'index']);
+Route::get('payment-methods', [OrderController::class, 'getPaymentMethods']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
