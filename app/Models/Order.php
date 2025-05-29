@@ -10,6 +10,22 @@ class Order extends Model
     /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'order_number',
+        'total_amount',
+        'status',
+        'delivery_date',
+        'gift_card_id',
+        'subscription_id',
+        'active',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function paymentMethods()
     {
         return $this->hasMany(PaymentMethod::class);
@@ -31,5 +47,13 @@ class Order extends Model
     public function giftCard()
     {
         return $this->belongsTo(GiftCard::class, 'gift_card_id');
+    }
+
+    /**
+     * Relation vers les gift cards créées par cette commande
+     */
+    public function createdGiftCards()
+    {
+        return $this->hasMany(GiftCard::class, 'order_id');
     }
 }

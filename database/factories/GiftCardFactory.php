@@ -18,11 +18,10 @@ class GiftCardFactory extends Factory
     {
         return [
             'code' => strtoupper($this->faker->unique()->bothify('???-###-???')),
-            'total_amount' => $this->faker->randomFloat(2, 5, 100),
-            'remaining_amount' => $this->faker->randomFloat(2, 5, 100),
             'expiration_date' => $this->faker->dateTimeBetween('now', '+1 year'),
             'used_at' => null,
             'order_id' => null,
+            'activated_by' => null, // Les cartes créées par le factory ne sont pas activées par défaut
         ];
     }
 }

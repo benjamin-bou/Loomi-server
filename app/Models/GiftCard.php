@@ -9,4 +9,37 @@ class GiftCard extends Model
 {
     /** @use HasFactory<\Database\Factories\GiftCardFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'code',
+        'expiration_date',
+        'used_at',
+        'order_id',
+        'gift_card_type_id',
+        'activated_by',
+    ];
+
+    /**
+     * Relation vers GiftCardType
+     */
+    public function giftCardType()
+    {
+        return $this->belongsTo(GiftCardType::class);
+    }
+
+    /**
+     * Relation vers Order
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Relation vers l'utilisateur qui a activé la carte
+     */
+    public function activatedBy()
+    {
+        return $this->belongsTo(User::class, 'activated_by');
+    }
 }

@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('order_number')->unique();
             $table->decimal('total_amount', 10, 2);
             $table->string('status')->default('pending');
+            $table->date('delivery_date')->nullable();
             $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->onDelete('set null');
             $table->boolean('active')->default(true);
             $table->timestamps();
