@@ -12,6 +12,7 @@ use App\Models\SubscriptionType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -77,6 +78,12 @@ class OrderController extends Controller
             'analysis' => $itemsAnalysis,
             'raw_items' => $items, // Ajout pour debug
         ]);
+
+        // Vérifier les restrictions d'abonnement
+        $subscriptionValidation = $this->validateSubscriptionPurchase($user, $items, $itemsAnalysis);
+        if (!$subscriptionValidation['valid']) {
+            return response()->json(['error' => $subscriptionValidation['message']], 400);
+        }
 
         // Valider la carte cadeau utilisée si présente
         $usedGiftCard = $this->validateUsedGiftCard($itemsAnalysis['giftCardCode'], $giftCardId);
@@ -156,6 +163,81 @@ class OrderController extends Controller
         }
 
         return $analysis;
+    }
+
+    /**
+     * Valider l'achat d'abonnement en fonction du statut actuel de l'utilisateur
+     */
+    private function validateSubscriptionPurchase($user, array $items, array $analysis): array
+    {
+        // Si pas d'abonnement dans le panier, pas de validation nécessaire
+        if (!$analysis['hasSubscriptions']) {
+            return ['valid' => true];
+        }
+
+        // Vérifier si l'utilisateur a déjà un abonnement actif
+        $currentSubscription = $this->getCurrentActiveSubscription($user);
+
+        foreach ($items as $item) {
+            if ($item['type'] === 'subscription') {
+                // Si l'utilisateur a déjà un abonnement actif
+                if ($currentSubscription) {
+                    // Si c'est une carte cadeau d'abonnement, on peut l'utiliser pour étendre l'abonnement
+                    if ($item['paidWithGiftCard'] ?? false) {
+                        // Vérifier que c'est bien une carte cadeau d'abonnement
+                        $giftCardCode = $item['giftCardCode'] ?? null;
+                        if ($giftCardCode) {
+                            $giftCard = GiftCard::where('code', $giftCardCode)->first();
+                            if ($giftCard && $giftCard->giftCardType) {
+                                $isSubscriptionGiftCard = stripos($giftCard->giftCardType->name, 'abonnement') !== false
+                                    || stripos($giftCard->giftCardType->name, 'subscription') !== false;
+
+                                if ($isSubscriptionGiftCard) {
+                                    continue; // C'est valide, on peut étendre l'abonnement
+                                }
+                            }
+                        }
+                        return [
+                            'valid' => false,
+                            'message' => 'Cette carte cadeau ne peut pas être utilisée pour étendre votre abonnement actuel.'
+                        ];
+                    } else {
+                        // Tentative d'achat d'un nouvel abonnement alors qu'il y en a déjà un actif
+                        return [
+                            'valid' => false,
+                            'message' => 'Vous avez déjà un abonnement actif. Vous ne pouvez pas acheter un nouvel abonnement.'
+                        ];
+                    }
+                }
+            }
+        }
+
+        return ['valid' => true];
+    }
+
+    /**
+     * Récupérer l'abonnement actif actuel de l'utilisateur
+     */
+    private function getCurrentActiveSubscription($user): ?Subscription
+    {
+        $order = $user->orders()
+            ->where('active', true)
+            ->whereNotNull('subscription_id')
+            ->latest()
+            ->first();
+
+        if (!$order || !$order->subscription) {
+            return null;
+        }
+
+        $subscription = $order->subscription;
+
+        // Vérifier si l'abonnement est vraiment actif
+        if ($subscription->isActive()) {
+            return $subscription;
+        }
+
+        return null;
     }
 
     /**
@@ -283,6 +365,7 @@ class OrderController extends Controller
     private function processSubscriptionItem(Order $order, array $item): void
     {
         $subscriptionType = SubscriptionType::find($item['id']);
+        $user = Auth::user();
 
         if (!$subscriptionType) {
             Log::warning('Subscription type not found for order', [
@@ -292,6 +375,24 @@ class OrderController extends Controller
             return;
         }
 
+        // Vérifier si l'utilisateur a déjà un abonnement actif
+        $currentSubscription = $this->getCurrentActiveSubscription($user);
+
+        // Si c'est une carte cadeau d'abonnement et qu'il y a déjà un abonnement actif
+        if ($currentSubscription && ($item['paidWithGiftCard'] ?? false)) {
+            // Étendre l'abonnement existant
+            $this->extendExistingSubscription($currentSubscription, $subscriptionType, $order, $item);
+        } else {
+            // Créer un nouvel abonnement
+            $this->createNewSubscription($subscriptionType, $order, $item);
+        }
+    }
+
+    /**
+     * Créer un nouvel abonnement
+     */
+    private function createNewSubscription(SubscriptionType $subscriptionType, Order $order, array $item): void
+    {
         // Calculer les dates
         $startDate = now()->toDateString();
         $endDate = now()->addMonths($this->getSubscriptionDurationInMonths($subscriptionType->recurrence))->toDateString();
@@ -309,13 +410,42 @@ class OrderController extends Controller
         $order->subscription_id = $subscription->id;
         $order->save();
 
-        Log::info('Subscription created for order', [
+        Log::info('New subscription created for order', [
             'subscription_id' => $subscription->id,
             'subscription_type_label' => $subscriptionType->label,
             'order_id' => $order->id,
             'paid_with_gift_card' => $item['paidWithGiftCard'] ?? false,
             'start_date' => $startDate,
             'end_date' => $endDate
+        ]);
+    }
+
+    /**
+     * Étendre un abonnement existant avec une carte cadeau
+     */
+    private function extendExistingSubscription(Subscription $currentSubscription, SubscriptionType $subscriptionType, Order $order, array $item): void
+    {
+        // Calculer la nouvelle date de fin en ajoutant les mois à partir de la date de fin actuelle
+        $currentEndDate = \Carbon\Carbon::parse($currentSubscription->end_date);
+        $additionalMonths = $this->getSubscriptionDurationInMonths($subscriptionType->recurrence);
+        $newEndDate = $currentEndDate->addMonths($additionalMonths);
+
+        // Mettre à jour l'abonnement existant
+        $currentSubscription->end_date = $newEndDate->toDateString();
+        $currentSubscription->save();
+
+        // Associer cette commande à l'abonnement existant pour traçabilité
+        $order->subscription_id = $currentSubscription->id;
+        $order->save();
+
+        Log::info('Subscription extended with gift card', [
+            'subscription_id' => $currentSubscription->id,
+            'subscription_type_label' => $subscriptionType->label,
+            'order_id' => $order->id,
+            'gift_card_code' => $item['giftCardCode'] ?? 'unknown',
+            'additional_months' => $additionalMonths,
+            'new_end_date' => $newEndDate->toDateString(),
+            'old_end_date' => $currentEndDate->subMonths($additionalMonths)->toDateString()
         ]);
     }
 

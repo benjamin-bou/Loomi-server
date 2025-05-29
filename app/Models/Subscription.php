@@ -52,4 +52,40 @@ class Subscription extends Model
     {
         return now()->diffInDays($this->end_date, false);
     }
+
+    public function monthsRemaining()
+    {
+        return now()->diffInMonths($this->end_date, false);
+    }
+
+    /**
+     * Calculer le nombre de mois offerts par les cartes cadeaux
+     */
+    public function getGiftCardMonthsAttribute()
+    {
+        $giftCardOrders = $this->order->user->orders()
+            ->where('subscription_id', $this->id)
+            ->whereHas('paymentMethods', function ($query) {
+                $query->whereHas('paymentMethodType', function ($subQuery) {
+                    $subQuery->where('name', 'Gift Card');
+                });
+            })
+            ->with(['paymentMethods.giftCard.giftCardType'])
+            ->get();
+
+        $totalMonths = 0;
+
+        foreach ($giftCardOrders as $order) {
+            foreach ($order->paymentMethods as $payment) {
+                if ($payment->giftCard && $payment->giftCard->giftCardType) {
+                    // Extraire le nombre de mois du nom de la carte cadeau
+                    preg_match('/(\d+)\s*mois/i', $payment->giftCard->giftCardType->name, $matches);
+                    $months = isset($matches[1]) ? (int)$matches[1] : 1;
+                    $totalMonths += $months;
+                }
+            }
+        }
+
+        return $totalMonths;
+    }
 }
