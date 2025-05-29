@@ -73,4 +73,12 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasManyThrough(Subscription::class, Order::class);
     }
+
+    /**
+     * Relation vers les avis laissés par l'utilisateur
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

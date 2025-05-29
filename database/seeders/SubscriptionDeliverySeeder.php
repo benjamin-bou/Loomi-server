@@ -28,7 +28,7 @@ class SubscriptionDeliverySeeder extends Seeder
         foreach ($subscriptions as $subscription) {
             // Créer 2-3 livraisons passées pour chaque abonnement
             $numberOfDeliveries = rand(2, 3);
-            
+
             for ($i = 0; $i < $numberOfDeliveries; $i++) {
                 $deliveryDate = Carbon::now()->subMonths($numberOfDeliveries - $i);
                 $randomBox = $boxes->random();
