@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->dateTime('expiration_date')->nullable();
             $table->dateTime('used_at')->nullable();
+            $table->foreignId('gift_card_type_id')->nullable()->constrained('gift_card_types')->onDelete('set null');
             $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('set null');
             $table->timestamps();
         });
