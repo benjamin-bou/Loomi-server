@@ -11,14 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('box_orders', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('box_id')->constrained()->onDelete('cascade');
-            $table->integer('quantity')->default(1);
-            $table->timestamps();
-        });
-
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
@@ -28,6 +20,14 @@ return new class extends Migration
             $table->date('delivery_date')->nullable();
             $table->foreignId('subscription_id')->nullable()->constrained('subscriptions')->onDelete('set null');
             $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('box_orders', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            $table->foreignId('box_id')->constrained()->onDelete('cascade');
+            $table->integer('quantity')->default(1);
             $table->timestamps();
         });
     }

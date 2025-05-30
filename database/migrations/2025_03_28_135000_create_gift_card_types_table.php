@@ -19,10 +19,6 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
-
-        Schema::table('gift_cards', function (Blueprint $table) {
-            $table->foreignId('gift_card_type_id')->nullable()->constrained('gift_card_types')->onDelete('set null');
-        });
     }
 
     /**
@@ -30,10 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('gift_cards', function (Blueprint $table) {
-            $table->dropForeign(['gift_card_type_id']);
-            $table->dropColumn('gift_card_type_id');
-        });
         Schema::dropIfExists('gift_card_types');
     }
 };
