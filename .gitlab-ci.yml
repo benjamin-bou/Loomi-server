@@ -10,16 +10,12 @@ test:
   tags:
     - back
   before_script:
-    # Installation des dépendances système
-    - apt-get update -qq && apt-get install -y -qq git curl libzip-dev unzip
-    - docker-php-ext-install zip pdo_mysql
-    
-    # Installation de Composer
-    - curl -sS https://getcomposer.org/installer | php
-    - mv composer.phar /usr/local/bin/composer
+    # Vérifier que PHP et Composer sont disponibles
+    - php --version
+    - composer --version || (echo "Composer non trouvé, installation..." && curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer)
     
     # Installation des dépendances PHP
-    - composer install --prefer-dist --no-interaction
+    - composer install --prefer-dist --no-interaction --no-dev
     
     # Configuration de l'environnement de test
     - cp .env.testing .env
@@ -27,7 +23,9 @@ test:
     
   script:
     - echo "🧪 Lancement des tests..."
-    - php artisan test
+    # Créer le dossier de logs si nécessaire
+    - mkdir -p storage/logs
+    - php artisan test --verbose
     - echo "✅ Tests terminés"
     
   artifacts:
