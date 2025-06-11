@@ -10,9 +10,18 @@ test:
   tags:
     - back
   before_script:
+    # Diagnostiquer le système
+    - echo "🔍 Diagnostic du système..."
+    - uname -a || echo "uname non disponible"
+    - cat /etc/os-release || echo "os-release non disponible"
+    - php -m | grep -E "(dom|xml|zip)" || echo "Extensions DOM/XML/ZIP non trouvées"
+    
     # Installer les extensions PHP nécessaires si possible
     - sudo apt-get update -qq || echo "Pas de droits sudo, on continue..."
     - sudo apt-get install -y php8.2-dom php8.2-xml php8.2-zip php8.2-mbstring || echo "Installation des extensions échouée, on continue..."
+    
+    # Alternative avec les outils système
+    - sudo apt-get install -y php-dom php-xml php-zip php-mbstring || echo "Installation alternative échouée, on continue..."
     
     # Vérifier que PHP et Composer sont disponibles
     - php --version
@@ -32,7 +41,7 @@ test:
     - echo "🧪 Lancement des tests..."
     # Créer le dossier de logs si nécessaire
     - mkdir -p storage/logs
-    - php artisan test --verbose
+    - php artisan test
     - echo "✅ Tests terminés"
     
   artifacts:
