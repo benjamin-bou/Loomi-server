@@ -6,6 +6,8 @@ stages:
 
 test:
   stage: test
+  tags:
+    - back
   script:
     # Vérifier la version de PHP et les extensions indispensables
     - php --version
