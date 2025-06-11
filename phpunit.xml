@@ -12,6 +12,12 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    
+    <!-- Rapports pour GitLab CI -->
+    <logging>
+        <junit outputFile="storage/logs/junit.xml"/>
+    </logging>
+    
     <source>
         <include>
             <directory>app</directory>

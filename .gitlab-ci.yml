@@ -1,18 +1,57 @@
 image: php:8.2
 
 stages:
+  - test
   - deploy
 
+# 🧪 Tests - S'exécute sur toutes les branches
+test:
+  stage: test
+  before_script:
+    # Installation des dépendances système
+    - apt-get update -qq && apt-get install -y -qq git curl libzip-dev unzip
+    - docker-php-ext-install zip pdo_mysql
+    
+    # Installation de Composer
+    - curl -sS https://getcomposer.org/installer | php
+    - mv composer.phar /usr/local/bin/composer
+    
+    # Installation des dépendances PHP
+    - composer install --prefer-dist --no-interaction
+    
+    # Configuration de l'environnement de test
+    - cp .env.testing .env
+    - php artisan key:generate --force
+    
+  script:
+    - echo "🧪 Lancement des tests..."
+    - php artisan test
+    - echo "✅ Tests terminés"
+    
+  artifacts:
+    when: always
+    reports:
+      junit: storage/logs/junit.xml
+    paths:
+      - storage/logs/
+    expire_in: 1 week
+
+# 🚀 Déploiement - Seulement sur main et après succès des tests
 deploy:
   stage: deploy
   tags:
     - back
+  dependencies:
+    - test
   script:
     - echo "🚚 Déploiement du back..."
     - sudo rm -rf /home/flowadmin/back/*
     - sudo cp -r . /home/flowadmin/back/
     - echo "🔃 Redémarrage de Nginx et PHP..."
     - sudo docker compose -f /home/flowadmin/docker-compose.yml restart nginx
+    - echo "✅ Déploiement terminé"
   only:
     - main
+  needs:
+    - test
 
