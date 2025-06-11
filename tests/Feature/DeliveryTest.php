@@ -27,9 +27,8 @@ class DeliveryTest extends TestCase
         $this->box = Box::factory()->create([
             'box_category_id' => $this->category->id
         ]);
-
         $this->subscriptionType = SubscriptionType::factory()->create([
-            'name' => 'Abonnement Mensuel'
+            'label' => 'Abonnement Mensuel'
         ]);
     }
 

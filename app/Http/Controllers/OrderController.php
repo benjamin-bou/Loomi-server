@@ -106,7 +106,12 @@ class OrderController extends Controller
         // Finaliser le statut de la commande
         $this->finalizeOrderStatus($order, $itemsAnalysis);
 
-        return response()->json(['success' => true, 'order_id' => $order->id]);
+        return response()->json([
+            'success' => true,
+            'order_id' => $order->id,
+            'message' => 'Commande créée avec succès',
+            'order' => $order->load(['boxOrders.box', 'subscription.subscriptionType', 'paymentMethods.paymentMethodType'])
+        ], 201);
     }
 
     /**
@@ -285,9 +290,39 @@ class OrderController extends Controller
                 continue;
             }
 
-            // Ajouter le prix des items payants
-            $price = $item['price'] ?? $item['base_price'] ?? 0;
+            // Récupérer le prix depuis la base de données selon le type
+            $price = 0;
             $quantity = $item['quantity'] ?? 1;
+
+            switch ($type) {
+                case 'box':
+                    $box = \App\Models\Box::find($item['id']);
+                    if ($box) {
+                        $price = $box->base_price;
+                    }
+                    break;
+
+                case 'subscription':
+                    $subscriptionType = \App\Models\SubscriptionType::find($item['id']);
+                    if ($subscriptionType) {
+                        $price = $subscriptionType->price;
+                    }
+                    break;
+
+                case 'giftcard':
+                case 'gift_card':
+                    $giftCardType = \App\Models\GiftCardType::find($item['id']);
+                    if ($giftCardType) {
+                        $price = $giftCardType->base_price;
+                    }
+                    break;
+
+                default:
+                    // Fallback pour les items avec prix direct
+                    $price = $item['price'] ?? $item['base_price'] ?? 0;
+                    break;
+            }
+
             $total += $price * $quantity;
         }
 
@@ -333,6 +368,7 @@ class OrderController extends Controller
                     break;
 
                 case 'giftcard':
+                case 'gift_card':
                     $this->processGiftCardItem($order, $item);
                     break;
 
@@ -537,11 +573,10 @@ class OrderController extends Controller
     private function finalizeOrderStatus(Order $order, array $analysis): void
     {
         // Marquer comme complétée dans ces cas :
-        // 1. Commande uniquement d'abonnements (sans boîtes ni cartes cadeaux)
-        // 2. Commande entièrement gratuite (payée avec carte cadeau)
-        // 3. Commande uniquement de cartes cadeaux (sans boîtes ni abonnements)
-        if (($analysis['hasSubscriptions'] && !$analysis['hasBoxes'] && !$analysis['hasGiftCards']) ||
-            ($order->total_amount == 0 && $analysis['freeItemsCount'] > 0) ||
+        // 1. Commande entièrement gratuite (payée avec carte cadeau)
+        // 2. Commande uniquement de cartes cadeaux (sans boîtes ni abonnements)
+        // Note: Les abonnements restent en "pending" pour permettre l'activation manuelle
+        if (($order->total_amount == 0 && $analysis['freeItemsCount'] > 0) ||
             ($analysis['hasGiftCards'] && !$analysis['hasBoxes'] && !$analysis['hasSubscriptions'])
         ) {
             $order->status = 'completed';
@@ -551,7 +586,7 @@ class OrderController extends Controller
                 'order_id' => $order->id,
                 'reason' => $analysis['hasGiftCards'] && !$analysis['hasBoxes'] && !$analysis['hasSubscriptions']
                     ? 'gift_cards_only'
-                    : ($order->total_amount == 0 ? 'free_with_gift_card' : 'subscriptions_only'),
+                    : 'free_with_gift_card',
                 'analysis' => $analysis
             ]);
         }

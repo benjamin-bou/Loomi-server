@@ -34,9 +34,8 @@ class IntegrationTest extends TestCase
             'name' => 'Boîte Test',
             'base_price' => 25.99
         ]);
-
         $this->subscriptionType = SubscriptionType::factory()->create([
-            'name' => 'Abonnement Test',
+            'label' => 'Abonnement Test',
             'price' => 29.99
         ]);
 

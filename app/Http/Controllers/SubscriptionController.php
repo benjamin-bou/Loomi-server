@@ -117,6 +117,11 @@ class SubscriptionController extends Controller
             'auto_renew' => false
         ]);
 
+        // Désactiver la commande associée
+        $order->update([
+            'active' => false
+        ]);
+
         return response()->json([
             'message' => 'Abonnement annulé avec succès',
             'subscription' => $subscription->fresh()->load('type')

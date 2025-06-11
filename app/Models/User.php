@@ -71,7 +71,17 @@ class User extends Authenticatable implements JWTSubject
 
     public function subscriptions()
     {
-        return $this->hasManyThrough(Subscription::class, Order::class);
+        // Retourne les subscriptions via les orders de l'utilisateur
+        $subscriptionIds = $this->orders()->whereNotNull('subscription_id')->pluck('subscription_id');
+        return Subscription::whereIn('id', $subscriptionIds);
+    }
+
+    /**
+     * Attribut pour récupérer les subscriptions comme collection
+     */
+    public function getSubscriptionsAttribute()
+    {
+        return $this->subscriptions()->get();
     }
 
     /**

@@ -19,10 +19,9 @@ class PaymentMethodFactory extends Factory
     public function definition(): array
     {
         return [
-            'payment_method_type_id' => PaymentMethodType::inRandomOrder()->first()->id,
-            // 'gift_card_id' => 
+            'payment_method_type_id' => PaymentMethodType::factory(),
             'amount' => $this->faker->randomFloat(2, 10, 1000),
-            'order_id' => Order::inRandomOrder()->first()->id,
+            'order_id' => Order::factory(),
         ];
     }
 }

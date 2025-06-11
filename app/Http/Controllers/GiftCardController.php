@@ -94,12 +94,13 @@ class GiftCardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Carte cadeau activée avec succès',
-                'giftCard' => [
+                'gift_card' => [
                     'id' => $giftCard->id,
                     'code' => $giftCard->code,
-                    'type' => $giftCard->giftCardType->name ?? 'Carte cadeau',
-                    'expiration_date' => $giftCard->expiration_date,
-                    'giftCardType' => $giftCard->giftCardType
+                    'gift_card_type' => $giftCard->giftCardType ? [
+                        'name' => $giftCard->giftCardType->name,
+                        'base_price' => $giftCard->giftCardType->base_price
+                    ] : null
                 ]
             ]);
         } catch (\Exception $e) {
@@ -156,7 +157,7 @@ class GiftCardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'giftCards' => $giftCards
+                'giftCards' => $giftCards->toArray()
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching user gift cards', [

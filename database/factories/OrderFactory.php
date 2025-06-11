@@ -21,9 +21,33 @@ class OrderFactory extends Factory
             'user_id' => \App\Models\User::factory(),
             'order_number' => $this->faker->unique()->numerify('ORD-#####'),
             'total_amount' => $this->faker->randomFloat(2, 10, 1000),
-            'status' => $this->faker->randomElement(['pending', 'paid', 'delivered', 'received', 'completed', 'canceled']),
+            'status' => 'pending', // Utiliser le défaut pour les tests
             'delivery_date' => $this->faker->optional()->dateTimeBetween('-1 month', '+1 month'),
             'active' => true,
         ];
+    }
+
+    /**
+     * Générer une commande avec un statut spécifique
+     */
+    public function withStatus($status)
+    {
+        return $this->state(['status' => $status]);
+    }
+
+    /**
+     * Générer une commande livrée
+     */
+    public function delivered()
+    {
+        return $this->state(['status' => 'delivered']);
+    }
+
+    /**
+     * Générer une commande terminée
+     */
+    public function completed()
+    {
+        return $this->state(['status' => 'completed']);
     }
 }

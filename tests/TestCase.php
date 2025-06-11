@@ -13,8 +13,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Configurer l'application pour les tests
-        $this->artisan('migrate:fresh');
+        // Les migrations seront gérées automatiquement par RefreshDatabase
     }
 
     /**

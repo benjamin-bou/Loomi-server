@@ -17,51 +17,39 @@ class SubscriptionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->subscriptionType = SubscriptionType::factory()->create([
-            'name' => 'Abonnement Mensuel',
-            'duration_months' => 1,
+            'label' => 'Abonnement Mensuel',
             'price' => 24.99,
-            'active' => true
         ]);
     }
 
     /** @test */
     public function user_can_get_list_of_subscription_types()
-    {
-        // Créer un type inactif
-        $inactiveType = SubscriptionType::factory()->create([
-            'active' => false
-        ]);
+    {        // Créer un autre type d'abonnement
+        $anotherType = SubscriptionType::factory()->create();
 
         $response = $this->getJson('/api/subscriptions');
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                '*' => [
-                    'id',
-                    'name',
-                    'duration_months',
-                    'price',
-                    'active'
-                ]
-            ]);
-
-        // Le endpoint retourne tous les types, actifs et inactifs
+        $response->assertStatus(200)->assertJsonStructure([
+            '*' => [
+                'id',
+                'label',
+                'price',
+                'recurrence'
+            ]
+        ]);        // Le endpoint retourne tous les types
         $response->assertJsonFragment(['id' => $this->subscriptionType->id])
-            ->assertJsonFragment(['id' => $inactiveType->id]);
+            ->assertJsonFragment(['id' => $anotherType->id]);
     }
 
     /** @test */
     public function user_can_get_subscription_type_details()
     {
         $response = $this->getJson("/api/subscriptions/{$this->subscriptionType->id}");
-
         $response->assertStatus(200)
             ->assertJson([
                 'id' => $this->subscriptionType->id,
-                'name' => $this->subscriptionType->name,
-                'duration_months' => $this->subscriptionType->duration_months,
+                'label' => $this->subscriptionType->label,
                 'price' => $this->subscriptionType->price,
             ]);
     }
@@ -107,7 +95,7 @@ class SubscriptionTest extends TestCase
                     'end_date',
                     'status',
                     'type' => [
-                        'name',
+                        'label',
                         'price'
                     ]
                 ],
@@ -236,26 +224,22 @@ class SubscriptionTest extends TestCase
     public function subscription_type_has_correct_structure()
     {
         $subscriptionType = SubscriptionType::factory()->create([
-            'name' => 'Abonnement Trimestriel',
+            'label' => 'Abonnement Trimestriel',
             'description' => 'Abonnement de 3 mois',
-            'duration_months' => 3,
             'price' => 69.99,
-            'active' => true
         ]);
 
         $response = $this->getJson("/api/subscriptions/{$subscriptionType->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'id',
-                'name',
-                'description',
-                'duration_months',
-                'price',
-                'active',
-                'created_at',
-                'updated_at'
-            ]);
+        $response->assertStatus(200)->assertJsonStructure([
+            'id',
+            'label',
+            'description',
+            'price',
+            'recurrence',
+            'created_at',
+            'updated_at'
+        ]);
     }
 
     /** @test */

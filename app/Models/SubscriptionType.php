@@ -11,6 +11,9 @@ class SubscriptionType extends Model
 
     protected $fillable = [
         'label',
+        'description',
+        'price',
+        'recurrence',
     ];
 
     public function subscriptions()

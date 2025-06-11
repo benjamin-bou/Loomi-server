@@ -31,10 +31,8 @@ class OrderTest extends TestCase
         $this->paymentMethodType = PaymentMethodType::factory()->create([
             'name' => 'Credit Card'
         ]);
-
         $this->subscriptionType = SubscriptionType::factory()->create([
-            'name' => 'Mensuel',
-            'duration_months' => 1,
+            'label' => 'Mensuel',
             'price' => 24.99
         ]);
     }

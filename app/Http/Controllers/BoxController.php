@@ -39,23 +39,15 @@ class BoxController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        try {
-            $box = Box::findOrFail($id);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Box not found'], 404);
-        }
+        $box = Box::findOrFail($id);
 
-        try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'base_price' => 'required|numeric|min:0',
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'base_price' => 'required|numeric|min:0',
+        ]);
 
-            $box->update($validatedData);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update box'], 500);
-        }
+        $box->update($validatedData);
 
         return response()->json(['message' => 'Box updated successfully', 'box' => $box]);
     }

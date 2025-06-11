@@ -22,9 +22,15 @@ class DeliveryController extends Controller
             ->with(['boxOrders.box'])
             ->get();
         foreach ($orders as $order) {
+            // Only include orders that are delivered or completed
+            $orderStatus = $this->getOrderStatus($order);
+            if (!in_array($orderStatus, ['delivered', 'completed'])) {
+                continue;
+            }
+
             foreach ($order->boxOrders as $boxOrder) {
                 if ($boxOrder->box) {
-                    $isDelivered = in_array($this->getOrderStatus($order), ['delivered', 'completed']);
+                    $isDelivered = in_array($orderStatus, ['delivered', 'completed']);
                     $canReview = $isDelivered && !$this->hasUserReviewedBox($user->id, $boxOrder->box->id);
 
                     $deliveries->push([
@@ -32,9 +38,11 @@ class DeliveryController extends Controller
                         'delivery_type' => 'order',
                         'box_id' => $boxOrder->box->id,
                         'box_name' => $boxOrder->box->name,
+                        'order_number' => $order->order_number,
+                        'quantity' => $boxOrder->quantity,
                         'order_date' => $order->created_at,
-                        'delivery_date' => $order->created_at, // Pour les commandes, on utilise la date de commande
-                        'status' => $this->getOrderStatus($order),
+                        'delivery_date' => $order->delivery_date ?? $order->created_at,
+                        'status' => $orderStatus,
                         'tracking_number' => $order->tracking_number ?? null,
                         'delivery_address' => $order->delivery_address ?? null,
                         'can_review' => $canReview,
@@ -85,7 +93,7 @@ class DeliveryController extends Controller
             return 'shipped';
         }
 
-        if ($order->status === 'completed') {
+        if (in_array($order->status, ['completed', 'delivered'])) {
             return 'delivered';
         }
 

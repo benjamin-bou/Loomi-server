@@ -92,7 +92,7 @@ class ReviewTest extends TestCase
         ])->postJson('/api/reviews', $reviewData);
 
         $response->assertStatus(403)
-            ->assertJson(['error' => 'Vous ne pouvez laisser un avis que pour les boîtes que vous avez reçues']);
+            ->assertJson(['error' => 'Vous ne pouvez laisser un avis que pour des boîtes que vous avez reçues']);
     }
 
     /** @test */
@@ -129,8 +129,7 @@ class ReviewTest extends TestCase
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token,
         ])->postJson('/api/reviews', $reviewData);
-
-        $response->assertStatus(400)
+        $response->assertStatus(409)
             ->assertJson(['error' => 'Vous avez déjà laissé un avis pour cette boîte']);
     }
 
