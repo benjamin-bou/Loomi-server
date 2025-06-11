@@ -1,66 +1,232 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎁 Loomi Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Loomi est une plateforme e-commerce dédiée à la découverte et à l’apprentissage de loisirs créatifs à travers des box thématiques. L’application repose sur un front-end React, un back-end PHP/Laravel et une base de données MySQL. Ce repository contient l'API backend développée avec Laravel 11.
 
-## About Laravel
+## 📋 Table des matières
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Architecture](#-architecture)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Utilisation](#-utilisation)
+- [Tests](#-tests)
+- [API Documentation](#-api-documentation)
+- [Déploiement](#-déploiement)
+- [Contribution](#-contribution)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🏗 Architecture
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Le backend Loomi utilise une architecture Laravel moderne avec :
 
-## Learning Laravel
+- **Laravel 11** - Framework PHP
+- **MySQL** - Base de données principale
+- **JWT** - Authentification
+- **MySQL**
+- **PHPUnit** - Tests automatisés
+- **GitLab CI/CD** - Intégration continue
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Structure du projet
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```
+loomi-server/
+├── app/
+│   ├── Http/Controllers/     # Contrôleurs API
+│   ├── Models/              # Modèles Eloquent
+│   └── Providers/           # Providers Laravel
+├── database/
+│   ├── factories/           # Factories pour tests
+│   ├── migrations/          # Migrations DB
+│   └── seeders/            # Seeders
+├── routes/
+│   └── api.php             # Routes API
+├── tests/
+│   ├── Feature/            # Tests d'intégration
+│   └── Unit/              # Tests unitaires
+└── storage/               # Logs et cache
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🔧 Prérequis
 
-## Laravel Sponsors
+- **PHP** >= 8.2
+- **Composer** >= 2.0
+- **MySQL** >= 8.0
+- **Node.js** >= 18 (pour le frontend)
+- **Git**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Installation
 
-### Premium Partners
+### 1. Cloner le repository
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+git clone http://dev-loomi.data-flow.fr/loomi/loomi-server.git
+cd loomi-server
+```
 
-## Contributing
+### 2. Installer les dépendances
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer install
+```
 
-## Code of Conduct
+### 3. Configuration de l'environnement
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Copier le fichier d'environnement
+cp .env.example .env
 
-## Security Vulnerabilities
+# Générer la clé d'application
+php artisan key:generate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Générer la clé JWT
+php artisan jwt:secret
+```
 
-## License
+### 4. Configuration de la base de données
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Modifier le fichier `.env` avec vos paramètres de base de données :
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=loomi
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
+
+### 5. Migrations et seeders
+
+```bash
+# Nettoyer toute la base de donnée, puis exécuter les migrations, puis peupler de données fictives
+php artisan migrate:fresh --seed
+```
+
+## ⚙️ Configuration
+
+### Variables d'environnement principales
+
+```env
+APP_NAME=Loomi
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret
+JWT_ALGO=HS256
+
+# CORS pour le frontend
+FRONTEND_URL=http://localhost:5173
+```
+
+## 🎯 Utilisation
+
+### Démarrer le serveur de développement
+
+```bash
+php artisan serve
+```
+
+L'API sera accessible sur `http://localhost:8000`
+
+### Endpoints principaux
+
+- **Authentication** : `/api/login`, `/api/register`
+- **Boxes** : `/api/boxes`
+- **Orders** : `/api/orders`
+- **Subscriptions** : `/api/subscriptions`
+- **Gift Cards** : `/api/gift-cards`
+- **Health Check** : `/api/health`
+
+### Avec le frontend
+
+⚠️ **Important** : Ce backend est conçu pour fonctionner avec le frontend Loomi React. 
+
+Pour une expérience complète :
+1. Démarrez le backend sur le port 8000
+2. Démarrez le frontend sur le port 5173
+3. Les deux applications communiquent via l'API REST
+
+## 🧪 Tests
+
+Le projet inclut une suite complète de tests automatisés.
+
+### Lancer tous les tests
+
+```bash
+# Tests complets
+php artisan test
+```
+
+### Lancer des tests spécifiques
+
+```bash
+# Tests unitaires uniquement
+php artisan test tests/Unit
+
+# Tests d'intégration uniquement
+php artisan test tests/Feature
+```
+
+### Types de tests
+
+- **Tests unitaires** : Modèles, relations, logique métier
+- **Tests d'intégration** : Endpoints API, authentification
+- **Tests de fonctionnalités** : Parcours utilisateur complets
+
+## 📚 API Documentation
+
+### Authentification
+
+Tous les endpoints protégés nécessitent un token JWT dans le header :
+
+```http
+Authorization: Bearer your_jwt_token
+```
+
+Quelques exemples d'endpoints :
+
+### Endpoints publics
+
+```http
+GET  /api/boxes              # Liste des boîtes
+GET  /api/boxes/{id}         # Détails d'une boîte
+POST /api/register           # Inscription
+POST /api/login              # Connexion
+GET  /api/health             # Status de l'API
+```
+
+### Endpoints authentifiés
+
+```http
+GET  /api/orders             # Commandes de l'utilisateur
+POST /api/orders             # Créer une commande
+GET  /api/subscription       # Abonnement actuel
+POST /api/cancel-subscription # Annuler l'abonnement
+GET  /api/profile/deliveries # Livraisons
+POST /api/reviews            # Créer un avis
+```
+
+## 🚀 Déploiement
+
+### CI/CD GitLab
+
+Le projet inclut une configuration GitLab CI qui :
+
+- **Teste** automatiquement toutes les branches
+- **Déploie** automatiquement la branche `main` après validation des tests
+- **Bloque** le déploiement si les tests échouent
+
+## 🔗 Liens utiles
+
+- [Frontend Loomi](https://dev-loomi.data-flow.fr/loomi/loomi-front) - Application React
+- [Laravel Documentation](https://laravel.com/docs)
+- [JWT Auth](https://jwt-auth.readthedocs.io/)
+
+---
+
+**⚠️ Note importante** : Ce backend doit être utilisé conjointement avec le frontend Loomi React pour une expérience utilisateur complète.
+
+## Auteur
+
+Boutrois Benjamin

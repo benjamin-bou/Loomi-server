@@ -7,6 +7,8 @@ stages:
 # 🧪 Tests - S'exécute sur toutes les branches
 test:
   stage: test
+  tags:
+    - back
   before_script:
     # Installation des dépendances système
     - apt-get update -qq && apt-get install -y -qq git curl libzip-dev unzip
