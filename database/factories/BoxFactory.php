@@ -21,8 +21,7 @@ class BoxFactory extends Factory
             'description' => $this->faker->sentence(),
             'base_price' => $this->faker->randomFloat(2, 10, 100),
             'active' => $this->faker->boolean(),
-            'quantity' => $this->faker->numberBetween(0, 1000),
-            'available_from' => now(),
+            'box_category_id' => \App\Models\BoxCategory::factory(),
         ];
     }
 }

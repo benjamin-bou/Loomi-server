@@ -21,7 +21,8 @@ return [
 
     'allowed_origins' => [
         'http://localhost:5173',
-        'http://192.168.1.165:5173'
+        'http://192.168.1.165:5173',
+        'https://loomi.data-flow.fr'
     ],
 
     'allowed_origins_patterns' => [],

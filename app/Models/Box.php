@@ -56,4 +56,12 @@ class Box extends Model
     {
         return $this->reviews()->count();
     }
+
+    /**
+     * Compter le nombre total d'avis (alias pour les tests)
+     */
+    public function totalReviews()
+    {
+        return $this->reviewsCount();
+    }
 }

@@ -16,13 +16,15 @@ class SubscriptionFactory extends Factory
      */
     public function definition(): array
     {
+        $startDate = $this->faker->dateTimeBetween('-1 month', '+1 month');
+        $endDate = (clone $startDate)->modify('+1 month');
+
         return [
-            'name' => $this->faker->word(),
-            'duration' => $this->faker->randomElement([1, 3, 6, 12]),
-            'base_price' => $this->faker->randomFloat(2, 10, 100),
-            'active' => true,
-            'renouvellement' => $this->faker->boolean(),
-            'subscription_type_id' => 1, // à adapter selon vos seeds
+            'subscription_type_id' => \App\Models\SubscriptionType::factory(),
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $endDate->format('Y-m-d'),
+            'status' => $this->faker->randomElement(['active', 'cancelled', 'expired']),
+            'auto_renew' => $this->faker->boolean(),
         ];
     }
 }

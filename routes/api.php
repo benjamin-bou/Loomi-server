@@ -17,6 +17,9 @@ Route::post('/refresh', [AuthController::class, 'refresh']);
 Route::get('/subscriptions', [SubscriptionController::class, 'index']);
 Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);
 
+Route::get('/boxes', [BoxController::class, 'index']);
+Route::get('/boxes/{id}', [BoxController::class, 'show']);
+
 Route::get('gift-cards', [GiftCardController::class, 'index']);
 Route::get('payment-methods', [OrderController::class, 'getPaymentMethods']);
 
