@@ -10,6 +10,10 @@ test:
   tags:
     - back
   before_script:
+    # Installer les extensions PHP nécessaires si possible
+    - sudo apt-get update -qq || echo "Pas de droits sudo, on continue..."
+    - sudo apt-get install -y php8.2-dom php8.2-xml php8.2-zip php8.2-mbstring || echo "Installation des extensions échouée, on continue..."
+    
     # Vérifier que PHP et Composer sont disponibles
     - php --version
     - composer --version || (echo "Composer non trouvé, installation..." && curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer)
@@ -18,11 +22,11 @@ test:
     - composer install --prefer-dist --no-interaction --no-dev --ignore-platform-reqs --no-scripts
     
     # Générer l'autoload sans exécuter les scripts Laravel
-    - composer dump-autoload --optimize --no-dev
+    - composer dump-autoload --optimize --no-dev --no-scripts
     
     # Configuration de l'environnement de test
     - cp .env.testing .env
-    - php artisan key:generate --force
+    - php artisan key:generate --force || echo "Erreur lors de la génération de clé, mais on continue..."
     
   script:
     - echo "🧪 Lancement des tests..."
