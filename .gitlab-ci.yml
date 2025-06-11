@@ -15,7 +15,10 @@ test:
     - composer --version || (echo "Composer non trouvé, installation..." && curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer)
     
     # Installation des dépendances PHP (ignorer les extensions manquantes)
-    - composer install --prefer-dist --no-interaction --no-dev --ignore-platform-req=ext-dom --ignore-platform-req=ext-xml --ignore-platform-req=ext-zip
+    - composer install --prefer-dist --no-interaction --no-dev --ignore-platform-reqs --no-scripts
+    
+    # Générer l'autoload sans exécuter les scripts Laravel
+    - composer dump-autoload --optimize --no-dev
     
     # Configuration de l'environnement de test
     - cp .env.testing .env
