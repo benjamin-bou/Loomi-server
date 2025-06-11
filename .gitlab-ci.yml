@@ -4,46 +4,19 @@ stages:
   - test
   - deploy
 
-# 🧪 Tests - S'exécute sur toutes les branches
 test:
   stage: test
-  tags:
-    - back
-  before_script:
-    # Diagnostiquer le système
-    - echo "🔍 Diagnostic du système..."
-    - uname -a || echo "uname non disponible"
-    - cat /etc/os-release || echo "os-release non disponible"
-    - php -m | grep -E "(dom|xml|zip)" || echo "Extensions DOM/XML/ZIP non trouvées"
-    
-    # Installer les extensions PHP nécessaires si possible
-    - sudo apt-get update -qq || echo "Pas de droits sudo, on continue..."
-    - sudo apt-get install -y php8.2-dom php8.2-xml php8.2-zip php8.2-mbstring || echo "Installation des extensions échouée, on continue..."
-    
-    # Alternative avec les outils système
-    - sudo apt-get install -y php-dom php-xml php-zip php-mbstring || echo "Installation alternative échouée, on continue..."
-    
-    # Vérifier que PHP et Composer sont disponibles
-    - php --version
-    - composer --version || (echo "Composer non trouvé, installation..." && curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer)
-    
-    # Installation des dépendances PHP (ignorer les extensions manquantes)
-    - composer install --prefer-dist --no-interaction --no-dev --ignore-platform-reqs --no-scripts
-    
-    # Générer l'autoload sans exécuter les scripts Laravel
-    - composer dump-autoload --optimize --no-dev --no-scripts
-    
-    # Configuration de l'environnement de test
-    - cp .env.testing .env
-    - php artisan key:generate --force || echo "Erreur lors de la génération de clé, mais on continue..."
-    
   script:
-    - echo "🧪 Lancement des tests..."
-    # Créer le dossier de logs si nécessaire
+    # Vérifier la version de PHP et les extensions indispensables
+    - php --version
+    - php -m | grep -E "(dom|xml|zip|mbstring)" || (echo "❌ Extensions PHP manquantes !" && exit 1)
+    - composer --version || (curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer)
+    - composer install --prefer-dist --no-interaction --no-scripts
+    - cp .env.testing .env
+    - php artisan key:generate --force
+    - php artisan migrate --env=testing --force
     - mkdir -p storage/logs
-    - php artisan test
-    - echo "✅ Tests terminés"
-    
+    - php artisan test --log-junit storage/logs/junit.xml
   artifacts:
     when: always
     reports:
@@ -52,22 +25,20 @@ test:
       - storage/logs/
     expire_in: 1 week
 
-# 🚀 Déploiement - Seulement sur main et après succès des tests
 deploy:
   stage: deploy
-  tags:
-    - back
-  dependencies:
-    - test
   script:
-    - echo "🚚 Déploiement du back..."
-    - sudo rm -rf /home/flowadmin/back/*
-    - sudo cp -r . /home/flowadmin/back/
+    - echo "🚀 Déploiement du back..."
+    - rm -rf /home/flowadmin/back/*
+    - cp -r . /home/flowadmin/back/
     - echo "🔃 Redémarrage de Nginx et PHP..."
-    - sudo docker compose -f /home/flowadmin/docker-compose.yml restart nginx
+    - docker compose -f /home/flowadmin/docker-compose.yml restart nginx
     - echo "✅ Déploiement terminé"
   only:
     - main
+  dependencies:
+    - test
   needs:
     - test
-
+  tags:
+    - back
