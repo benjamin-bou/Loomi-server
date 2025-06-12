@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Box;
 use App\Models\Subscription;
 use App\Models\PaymentMethod;
+use App\Models\PaymentMethodType;
 use App\Models\BoxOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -34,12 +35,26 @@ class OrderModelTest extends TestCase
         $this->assertInstanceOf(Subscription::class, $order->subscription);
         $this->assertEquals($subscription->id, $order->subscription->id);
     }
-
     /** @test */
     public function order_has_many_payment_methods()
     {
         $order = Order::factory()->create();
-        $paymentMethods = PaymentMethod::factory()->count(2)->create(['order_id' => $order->id]);
+
+        // Create payment method types first to avoid duplicates
+        $paymentMethodType1 = PaymentMethodType::factory()->create(['name' => 'Credit Card']);
+        $paymentMethodType2 = PaymentMethodType::factory()->create(['name' => 'PayPal']);
+
+        // Create payment methods with specific payment method types
+        $paymentMethods = [
+            PaymentMethod::factory()->create([
+                'order_id' => $order->id,
+                'payment_method_type_id' => $paymentMethodType1->id
+            ]),
+            PaymentMethod::factory()->create([
+                'order_id' => $order->id,
+                'payment_method_type_id' => $paymentMethodType2->id
+            ])
+        ];
 
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $order->paymentMethods);
         $this->assertCount(2, $order->paymentMethods);

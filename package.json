@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "php artisan test",
+        "coverage:report": "php scripts/coverage-report-detailed.php"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

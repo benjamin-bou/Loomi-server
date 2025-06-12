@@ -14,6 +14,7 @@ use App\Models\GiftCardType;
 use App\Models\Subscription;
 use App\Models\SubscriptionType;
 use App\Models\PaymentMethodType;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class IntegrationTest extends TestCase
@@ -219,11 +220,12 @@ class IntegrationTest extends TestCase
         // 2. Vérifier que la carte a été créée
         $giftCard = GiftCard::where('gift_card_type_id', $this->giftCardType->id)->first();
         $this->assertNotNull($giftCard);
-        $this->assertNotNull($giftCard->code);
-
-        // 3. Activer la carte cadeau avec un autre utilisateur
+        $this->assertNotNull($giftCard->code);        // 3. Activer la carte cadeau avec un autre utilisateur
         $otherUser = $this->createUser(['email' => 'other@example.com']);
         $otherToken = $this->getJWTToken($otherUser);
+
+        // Force logout pour nettoyer la session
+        Auth::logout();
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $otherToken,

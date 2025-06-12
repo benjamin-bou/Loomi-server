@@ -15,8 +15,10 @@ class BoxSeeder extends Seeder
     public function run(): void
     {
         $categories = BoxCategory::all();
-        Box::factory()->count(10)->create()->each(function ($box) use ($categories) {
-            $box->base_price = 36.90;
+        Box::factory()->count(10)->create([
+            'active' => 1,  // Ensure all boxes are active
+            'base_price' => 36.90
+        ])->each(function ($box) use ($categories) {
             // Attribution d'une catégorie aléatoire
             $box->box_category_id = $categories->random()->id;
             $box->save();

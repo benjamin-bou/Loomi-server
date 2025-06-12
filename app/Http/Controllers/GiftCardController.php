@@ -30,6 +30,7 @@ class GiftCardController extends Controller
     {
         // Vérifier que l'utilisateur est connecté
         $user = Auth::user();
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -82,14 +83,8 @@ class GiftCardController extends Controller
 
             // Marquer la carte comme activée par l'utilisateur connecté
             $giftCard->activated_by = Auth::id();
+            $giftCard->used_at = now();
             $giftCard->save();
-
-            Log::info('GiftCard activated successfully', [
-                'gift_card_id' => $giftCard->id,
-                'code' => $code,
-                'gift_card_type' => $giftCard->giftCardType->name ?? 'Unknown',
-                'user_id' => Auth::id()
-            ]);
 
             return response()->json([
                 'success' => true,
@@ -138,7 +133,6 @@ class GiftCardController extends Controller
             $giftCards = GiftCard::with(['giftCardType', 'order'])
                 ->where('activated_by', $user->id)
                 ->whereNotNull('code') // Cartes qui ont un code (créées)
-                ->whereNull('used_at') // Cartes non utilisées
                 ->get()
                 ->map(function ($giftCard) {
                     return [
@@ -146,7 +140,7 @@ class GiftCardController extends Controller
                         'code' => $giftCard->code,
                         'expiration_date' => $giftCard->expiration_date,
                         'used_at' => $giftCard->used_at,
-                        'giftCardType' => $giftCard->giftCardType ? [
+                        'gift_card_type' => $giftCard->giftCardType ? [
                             'id' => $giftCard->giftCardType->id,
                             'name' => $giftCard->giftCardType->name,
                             'description' => $giftCard->giftCardType->description,
@@ -155,10 +149,7 @@ class GiftCardController extends Controller
                     ];
                 });
 
-            return response()->json([
-                'success' => true,
-                'giftCards' => $giftCards->toArray()
-            ]);
+            return response()->json($giftCards->toArray());
         } catch (\Exception $e) {
             Log::error('Error fetching user gift cards', [
                 'error' => $e->getMessage(),

@@ -158,20 +158,16 @@ Le projet inclut une suite complète de tests automatisés.
 php artisan test
 ```
 
-### Lancer des tests spécifiques
+### Lancer tous les tests avec rapport et statistiques
 
 ```bash
-# Tests unitaires uniquement
-php artisan test tests/Unit
-
-# Tests d'intégration uniquement
-php artisan test tests/Feature
+# Tests complets avec rapport et statistiques
+npm run coverage:report
 ```
 
 ### Types de tests
 
 - **Tests unitaires** : Modèles, relations, logique métier
-- **Tests d'intégration** : Endpoints API, authentification
 - **Tests de fonctionnalités** : Parcours utilisateur complets
 
 ## 📚 API Documentation

@@ -19,6 +19,11 @@ class GiftCard extends Model
         'activated_by',
     ];
 
+    protected $casts = [
+        'expiration_date' => 'datetime',
+        'used_at' => 'datetime',
+    ];
+
     /**
      * Relation vers GiftCardType
      */
