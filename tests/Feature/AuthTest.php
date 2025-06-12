@@ -6,12 +6,13 @@ use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 
 class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_can_register_with_valid_data()
     {
         $userData = [
@@ -43,7 +44,7 @@ class AuthTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_register_with_invalid_email()
     {
         $userData = [
@@ -59,7 +60,7 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_register_with_existing_email()
     {
         $existingUser = User::factory()->create([
@@ -79,7 +80,7 @@ class AuthTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_login_with_valid_credentials()
     {
         $user = User::factory()->create([
@@ -102,7 +103,7 @@ class AuthTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_login_with_invalid_credentials()
     {
         $user = User::factory()->create([
@@ -121,7 +122,7 @@ class AuthTest extends TestCase
             ->assertJson(['error' => 'Invalid credentials']);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_profile_when_authenticated()
     {
         $user = $this->createUser();
@@ -140,7 +141,7 @@ class AuthTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_access_profile_without_authentication()
     {
         $response = $this->getJson('/api/profile');
@@ -148,7 +149,7 @@ class AuthTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_profile()
     {
         $user = $this->createUser();
@@ -175,7 +176,7 @@ class AuthTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_refresh_token()
     {
         $user = $this->createUser();

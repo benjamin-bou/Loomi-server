@@ -12,6 +12,7 @@ use App\Models\GiftCard;
 use App\Models\GiftCardType;
 use App\Models\SubscriptionType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class OrderTest extends TestCase
 {
@@ -37,7 +38,7 @@ class OrderTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_get_their_orders()
     {
         $user = $this->createUser();
@@ -70,7 +71,7 @@ class OrderTest extends TestCase
             ->assertJsonCount(3, 'orders'); // Seulement les commandes de l'utilisateur
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_get_orders()
     {
         $response = $this->getJson('/api/orders');
@@ -78,7 +79,7 @@ class OrderTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_order_with_boxes()
     {
         $user = $this->createUser();
@@ -119,7 +120,7 @@ class OrderTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_order_with_subscription()
     {
         $user = $this->createUser();
@@ -155,7 +156,7 @@ class OrderTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_order_with_gift_card()
     {
         $user = $this->createUser();
@@ -195,7 +196,7 @@ class OrderTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_create_order_with_empty_cart()
     {
         $user = $this->createUser();
@@ -214,7 +215,7 @@ class OrderTest extends TestCase
             ->assertJson(['error' => 'Utilisateur non authentifié ou panier vide']);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_create_order()
     {
         $orderData = [
@@ -233,7 +234,7 @@ class OrderTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_payment_methods()
     {
         $response = $this->getJson('/api/payment-methods');
@@ -250,7 +251,7 @@ class OrderTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_mixed_order()
     {
         $user = $this->createUser();
@@ -291,7 +292,7 @@ class OrderTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function order_number_is_unique_and_generated()
     {
         $user = $this->createUser();

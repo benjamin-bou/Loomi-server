@@ -9,6 +9,7 @@ use App\Models\GiftCardType;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 
 class GiftCardTest extends TestCase
 {
@@ -25,7 +26,7 @@ class GiftCardTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_list_of_active_gift_card_types()
     {
         // Créer un type inactif
@@ -41,7 +42,7 @@ class GiftCardTest extends TestCase
             ->assertJsonMissing(['id' => $inactiveType->id]);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_activate_gift_card()
     {
         $user = $this->createUser();
@@ -85,7 +86,7 @@ class GiftCardTest extends TestCase
         $this->assertNotNull($giftCard->used_at);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_activate_invalid_gift_card_code()
     {
         $user = $this->createUser();
@@ -104,7 +105,7 @@ class GiftCardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_activate_already_used_gift_card()
     {
         $user = $this->createUser();
@@ -132,7 +133,7 @@ class GiftCardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_activate_expired_gift_card()
     {
         $user = $this->createUser();
@@ -160,7 +161,7 @@ class GiftCardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_activate_gift_card()
     {
         $giftCard = GiftCard::factory()->create([
@@ -179,7 +180,7 @@ class GiftCardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_their_gift_cards()
     {
         $user = $this->createUser();
@@ -223,7 +224,7 @@ class GiftCardTest extends TestCase
         $response->assertJsonMissing(['id' => $otherGiftCard->id]);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_get_gift_cards()
     {
         $response = $this->getJson('/api/my-gift-cards');
@@ -231,7 +232,7 @@ class GiftCardTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function gift_card_code_validation_requires_valid_format()
     {
         $user = $this->createUser();
@@ -258,7 +259,7 @@ class GiftCardTest extends TestCase
             ->assertJsonValidationErrors(['code']);
     }
 
-    /** @test */
+    #[Test]
     public function gift_card_codes_are_case_insensitive()
     {
         $user = $this->createUser();
@@ -286,7 +287,7 @@ class GiftCardTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_view_gift_card_with_expiration_date()
     {
         $user = $this->createUser();

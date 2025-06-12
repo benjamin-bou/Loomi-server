@@ -9,6 +9,7 @@ use App\Models\SubscriptionType;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Test;
 
 class SubscriptionTest extends TestCase
 {
@@ -23,7 +24,7 @@ class SubscriptionTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_list_of_subscription_types()
     {        // Créer un autre type d'abonnement
         $anotherType = SubscriptionType::factory()->create();
@@ -42,7 +43,7 @@ class SubscriptionTest extends TestCase
             ->assertJsonFragment(['id' => $anotherType->id]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_subscription_type_details()
     {
         $response = $this->getJson("/api/subscriptions/{$this->subscriptionType->id}");
@@ -54,7 +55,7 @@ class SubscriptionTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_gets_404_for_nonexistent_subscription_type()
     {
         $response = $this->getJson('/api/subscriptions/999');
@@ -62,7 +63,7 @@ class SubscriptionTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_get_current_subscription()
     {
         $user = $this->createUser();
@@ -103,7 +104,7 @@ class SubscriptionTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_with_no_subscription_gets_null()
     {
         $user = $this->createUser();
@@ -122,7 +123,7 @@ class SubscriptionTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_get_subscription()
     {
         $response = $this->getJson('/api/my-subscription');
@@ -130,7 +131,7 @@ class SubscriptionTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_cancel_active_subscription()
     {
         $user = $this->createUser();
@@ -172,7 +173,7 @@ class SubscriptionTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_cancel_nonexistent_subscription()
     {
         $user = $this->createUser();
@@ -186,7 +187,7 @@ class SubscriptionTest extends TestCase
             ->assertJson(['error' => 'Aucun abonnement actif trouvé']);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_cancel_already_cancelled_subscription()
     {
         $user = $this->createUser();
@@ -212,7 +213,7 @@ class SubscriptionTest extends TestCase
             ->assertJson(['error' => 'Aucun abonnement actif trouvé']);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_cancel_subscription()
     {
         $response = $this->postJson('/api/cancel-subscription');
@@ -220,7 +221,7 @@ class SubscriptionTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function subscription_type_has_correct_structure()
     {
         $subscriptionType = SubscriptionType::factory()->create([
@@ -242,7 +243,7 @@ class SubscriptionTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_only_access_their_own_subscription()
     {
         $user1 = $this->createUser();
@@ -270,7 +271,7 @@ class SubscriptionTest extends TestCase
             ->assertJson(['subscription' => null]);
     }
 
-    /** @test */
+    #[Test]
     public function subscription_with_expired_end_date_is_handled_correctly()
     {
         $user = $this->createUser();

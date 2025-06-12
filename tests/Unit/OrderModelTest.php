@@ -11,12 +11,13 @@ use App\Models\PaymentMethod;
 use App\Models\PaymentMethodType;
 use App\Models\BoxOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class OrderModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function order_belongs_to_user()
     {
         $user = User::factory()->create();
@@ -26,7 +27,7 @@ class OrderModelTest extends TestCase
         $this->assertEquals($user->id, $order->user->id);
     }
 
-    /** @test */
+    #[Test]
     public function order_belongs_to_subscription()
     {
         $subscription = Subscription::factory()->create();
@@ -35,7 +36,7 @@ class OrderModelTest extends TestCase
         $this->assertInstanceOf(Subscription::class, $order->subscription);
         $this->assertEquals($subscription->id, $order->subscription->id);
     }
-    /** @test */
+    #[Test]
     public function order_has_many_payment_methods()
     {
         $order = Order::factory()->create();
@@ -61,7 +62,7 @@ class OrderModelTest extends TestCase
         $this->assertInstanceOf(PaymentMethod::class, $order->paymentMethods->first());
     }
 
-    /** @test */
+    #[Test]
     public function order_has_many_box_orders()
     {
         $order = Order::factory()->create();
@@ -72,7 +73,7 @@ class OrderModelTest extends TestCase
         $this->assertInstanceOf(BoxOrder::class, $order->boxOrders->first());
     }
 
-    /** @test */
+    #[Test]
     public function order_belongs_to_many_boxes()
     {
         $order = Order::factory()->create();
@@ -94,7 +95,7 @@ class OrderModelTest extends TestCase
         $this->assertInstanceOf(Box::class, $orderBoxes->first());
     }
 
-    /** @test */
+    #[Test]
     public function order_fillable_attributes_are_correct()
     {
         $fillable = [
@@ -113,7 +114,7 @@ class OrderModelTest extends TestCase
         $this->assertEquals($fillable, $order->getFillable());
     }
 
-    /** @test */
+    #[Test]
     public function order_number_is_unique()
     {
         $order1 = Order::factory()->create(['order_number' => 'ORD001']);
@@ -123,7 +124,7 @@ class OrderModelTest extends TestCase
         Order::factory()->create(['order_number' => 'ORD001']);
     }
 
-    /** @test */
+    #[Test]
     public function order_total_amount_is_stored_as_decimal()
     {
         $order = Order::factory()->create(['total_amount' => 29.99]);
@@ -132,7 +133,7 @@ class OrderModelTest extends TestCase
         $this->assertIsFloat($order->total_amount);
     }
 
-    /** @test */
+    #[Test]
     public function order_has_default_status()
     {
         $order = Order::factory()->create();
@@ -140,7 +141,7 @@ class OrderModelTest extends TestCase
         $this->assertEquals('pending', $order->status);
     }
 
-    /** @test */
+    #[Test]
     public function order_has_default_active_status()
     {
         $order = Order::factory()->create();
@@ -148,7 +149,7 @@ class OrderModelTest extends TestCase
         $this->assertTrue($order->active);
     }
 
-    /** @test */
+    #[Test]
     public function order_can_be_inactive()
     {
         $order = Order::factory()->create(['active' => false]);
@@ -156,7 +157,7 @@ class OrderModelTest extends TestCase
         $this->assertFalse($order->active);
     }
 
-    /** @test */
+    #[Test]
     public function order_delivery_date_can_be_null()
     {
         $order = Order::factory()->create(['delivery_date' => null]);
@@ -164,7 +165,7 @@ class OrderModelTest extends TestCase
         $this->assertNull($order->delivery_date);
     }
 
-    /** @test */
+    #[Test]
     public function order_can_calculate_total_from_box_orders()
     {
         $order = Order::factory()->create(['total_amount' => 0]);

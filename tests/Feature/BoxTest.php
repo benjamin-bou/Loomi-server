@@ -7,6 +7,7 @@ use App\Models\Box;
 use App\Models\BoxCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class BoxTest extends TestCase
 {
@@ -23,7 +24,7 @@ class BoxTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_list_of_active_boxes()
     {
         // Créer des boîtes actives et inactives
@@ -45,7 +46,7 @@ class BoxTest extends TestCase
             ->assertJsonMissing(['id' => $inactiveBox->id]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_box_details()
     {
         $box = Box::factory()->create([
@@ -73,7 +74,7 @@ class BoxTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_gets_404_for_nonexistent_box()
     {
         $response = $this->getJson('/api/boxes/999');
@@ -81,7 +82,7 @@ class BoxTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_get_all_boxes_including_inactive()
     {
         $admin = $this->createAdmin();
@@ -107,7 +108,7 @@ class BoxTest extends TestCase
             ->assertJsonFragment(['id' => $inactiveBox->id]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_access_admin_boxes_endpoint()
     {
         $user = $this->createUser(['role' => 'user']);
@@ -120,7 +121,7 @@ class BoxTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_update_box()
     {
         $admin = $this->createAdmin();
@@ -151,7 +152,7 @@ class BoxTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function non_admin_cannot_update_box()
     {
         $user = $this->createUser(['role' => 'user']);
@@ -174,7 +175,7 @@ class BoxTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function admin_cannot_update_nonexistent_box()
     {
         $admin = $this->createAdmin();
@@ -193,7 +194,7 @@ class BoxTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function admin_cannot_update_box_with_invalid_data()
     {
         $admin = $this->createAdmin();

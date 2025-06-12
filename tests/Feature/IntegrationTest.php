@@ -16,6 +16,7 @@ use App\Models\SubscriptionType;
 use App\Models\PaymentMethodType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class IntegrationTest extends TestCase
 {
@@ -50,7 +51,7 @@ class IntegrationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function complete_user_journey_box_purchase_and_review()
     {
         // 1. Créer un utilisateur
@@ -138,7 +139,7 @@ class IntegrationTest extends TestCase
         $this->assertEquals(4.5, $reviewsData['average_rating']);
     }
 
-    /** @test */
+    #[Test]
     public function complete_subscription_journey()
     {
         $user = $this->createUser();
@@ -193,7 +194,7 @@ class IntegrationTest extends TestCase
         $this->assertEquals('cancelled', $subscription->status);
     }
 
-    /** @test */
+    #[Test]
     public function complete_gift_card_journey()
     {
         $user = $this->createUser();
@@ -250,7 +251,7 @@ class IntegrationTest extends TestCase
         $this->assertCount(1, $giftCards);
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_manage_boxes()
     {
         $admin = $this->createAdmin();
@@ -292,7 +293,7 @@ class IntegrationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function payment_methods_are_properly_handled()
     {
         // 1. Consulter les méthodes de paiement disponibles
@@ -317,7 +318,7 @@ class IntegrationTest extends TestCase
         $this->assertContains('cb', $methodKeys);
     }
 
-    /** @test */
+    #[Test]
     public function mixed_order_calculation_is_correct()
     {
         $user = $this->createUser();

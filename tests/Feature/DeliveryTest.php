@@ -14,6 +14,7 @@ use App\Models\SubscriptionDelivery;
 use App\Models\Review;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Test;
 
 class DeliveryTest extends TestCase
 {
@@ -32,7 +33,7 @@ class DeliveryTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function authenticated_user_can_get_their_deliveries()
     {
         $user = $this->createUser();
@@ -89,7 +90,7 @@ class DeliveryTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($deliveries));
     }
 
-    /** @test */
+    #[Test]
     public function user_can_only_see_their_own_deliveries()
     {
         $user1 = $this->createUser();
@@ -136,7 +137,7 @@ class DeliveryTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_get_deliveries()
     {
         $response = $this->getJson('/api/profile/deliveries');
@@ -144,7 +145,7 @@ class DeliveryTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function delivery_shows_correct_review_status()
     {
         $user = $this->createUser();
@@ -186,7 +187,7 @@ class DeliveryTest extends TestCase
         $this->assertFalse($delivery['can_review']);
     }
 
-    /** @test */
+    #[Test]
     public function delivery_includes_subscription_information()
     {
         $user = $this->createUser();
@@ -224,7 +225,7 @@ class DeliveryTest extends TestCase
         $this->assertEquals('delivered', $subscriptionDelivery['status']);
     }
 
-    /** @test */
+    #[Test]
     public function delivery_includes_order_information()
     {
         $user = $this->createUser();
@@ -259,7 +260,7 @@ class DeliveryTest extends TestCase
         $this->assertEquals(2, $orderDelivery['quantity']);
     }
 
-    /** @test */
+    #[Test]
     public function only_delivered_orders_appear_in_deliveries()
     {
         $user = $this->createUser();
@@ -313,7 +314,7 @@ class DeliveryTest extends TestCase
         $this->assertEquals('delivered', $delivery['status']);
     }
 
-    /** @test */
+    #[Test]
     public function empty_deliveries_list_when_user_has_no_orders()
     {
         $user = $this->createUser();
@@ -327,7 +328,7 @@ class DeliveryTest extends TestCase
             ->assertJson([]);
     }
 
-    /** @test */
+    #[Test]
     public function delivery_dates_are_properly_formatted()
     {
         $user = $this->createUser();

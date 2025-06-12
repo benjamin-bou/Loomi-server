@@ -8,12 +8,13 @@ use App\Models\BoxCategory;
 use App\Models\Review;
 use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class BoxModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function box_belongs_to_category()
     {
         $category = BoxCategory::factory()->create();
@@ -23,7 +24,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals($category->id, $box->category->id);
     }
 
-    /** @test */
+    #[Test]
     public function box_has_many_reviews()
     {
         $box = Box::factory()->create();
@@ -34,7 +35,7 @@ class BoxModelTest extends TestCase
         $this->assertInstanceOf(Review::class, $box->reviews->first());
     }
 
-    /** @test */
+    #[Test]
     public function box_can_calculate_average_rating()
     {
         $box = Box::factory()->create();
@@ -49,7 +50,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals(4.0, $averageRating);
     }
 
-    /** @test */
+    #[Test]
     public function box_average_rating_returns_null_when_no_reviews()
     {
         $box = Box::factory()->create();
@@ -59,7 +60,7 @@ class BoxModelTest extends TestCase
         $this->assertNull($averageRating);
     }
 
-    /** @test */
+    #[Test]
     public function box_can_count_total_reviews()
     {
         $box = Box::factory()->create();
@@ -70,7 +71,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals(5, $totalReviews);
     }
 
-    /** @test */
+    #[Test]
     public function box_fillable_attributes_are_correct()
     {
         $fillable = [
@@ -86,7 +87,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals($fillable, $box->getFillable());
     }
 
-    /** @test */
+    #[Test]
     public function box_belongs_to_many_items()
     {
         $box = Box::factory()->create();
@@ -105,7 +106,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals(1, $box->items->first()->pivot->quantity);
     }
 
-    /** @test */
+    #[Test]
     public function box_scope_active_filters_correctly()
     {
         $activeBox = Box::factory()->create(['active' => true]);
@@ -117,7 +118,7 @@ class BoxModelTest extends TestCase
         $this->assertEquals($activeBox->id, $activeBoxes->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function box_price_is_stored_as_decimal()
     {
         $box = Box::factory()->create(['base_price' => 19.99]);

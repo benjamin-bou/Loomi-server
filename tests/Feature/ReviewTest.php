@@ -10,6 +10,7 @@ use App\Models\Review;
 use App\Models\Order;
 use App\Models\BoxOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ReviewTest extends TestCase
 {
@@ -25,7 +26,7 @@ class ReviewTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_create_review_for_received_box()
     {
         $user = $this->createUser();
@@ -75,7 +76,7 @@ class ReviewTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_create_review_for_box_not_received()
     {
         $user = $this->createUser();
@@ -95,7 +96,7 @@ class ReviewTest extends TestCase
             ->assertJson(['error' => 'Vous ne pouvez laisser un avis que pour des boîtes que vous avez reçues']);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_create_duplicate_review()
     {
         $user = $this->createUser();
@@ -133,7 +134,7 @@ class ReviewTest extends TestCase
             ->assertJson(['error' => 'Vous avez déjà laissé un avis pour cette boîte']);
     }
 
-    /** @test */
+    #[Test]
     public function unauthenticated_user_cannot_create_review()
     {
         $reviewData = [
@@ -147,7 +148,7 @@ class ReviewTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_create_review_with_invalid_rating()
     {
         $user = $this->createUser();
@@ -179,7 +180,7 @@ class ReviewTest extends TestCase
             ->assertJsonValidationErrors(['rating']);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_their_review_for_box()
     {
         $user = $this->createUser();
@@ -206,7 +207,7 @@ class ReviewTest extends TestCase
             ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_gets_null_when_no_review_exists()
     {
         $user = $this->createUser();
@@ -220,7 +221,7 @@ class ReviewTest extends TestCase
             ->assertJson(['review' => null]);
     }
 
-    /** @test */
+    #[Test]
     public function anyone_can_get_all_reviews_for_box()
     {
         // Créer plusieurs avis pour la boîte
@@ -257,7 +258,7 @@ class ReviewTest extends TestCase
             ->assertJsonCount(3, 'reviews');
     }
 
-    /** @test */
+    #[Test]
     public function user_can_update_their_review()
     {
         $user = $this->createUser();
@@ -289,7 +290,7 @@ class ReviewTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_update_other_users_review()
     {
         $user = $this->createUser();
@@ -314,7 +315,7 @@ class ReviewTest extends TestCase
             ->assertJson(['error' => 'Non autorisé à modifier cet avis']);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_delete_their_review()
     {
         $user = $this->createUser();
@@ -335,7 +336,7 @@ class ReviewTest extends TestCase
         $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
     }
 
-    /** @test */
+    #[Test]
     public function user_cannot_delete_other_users_review()
     {
         $user = $this->createUser();

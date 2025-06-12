@@ -8,12 +8,13 @@ use App\Models\Order;
 use App\Models\Review;
 use App\Models\Subscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class UserModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function user_has_many_orders()
     {
         $user = User::factory()->create();
@@ -24,7 +25,7 @@ class UserModelTest extends TestCase
         $this->assertInstanceOf(Order::class, $user->orders->first());
     }
 
-    /** @test */
+    #[Test]
     public function user_has_many_reviews()
     {
         $user = User::factory()->create();
@@ -35,7 +36,7 @@ class UserModelTest extends TestCase
         $this->assertInstanceOf(Review::class, $user->reviews->first());
     }
 
-    /** @test */
+    #[Test]
     public function user_has_subscriptions_through_orders()
     {
         $user = User::factory()->create();
@@ -53,7 +54,7 @@ class UserModelTest extends TestCase
         $this->assertEquals($subscription->id, $userSubscriptions->first()->id);
     }
 
-    /** @test */
+    #[Test]
     public function user_password_is_hashed()
     {
         $user = User::factory()->create([
@@ -64,7 +65,7 @@ class UserModelTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('plaintext-password', $user->password));
     }
 
-    /** @test */
+    #[Test]
     public function user_has_jwt_custom_claims()
     {
         $user = User::factory()->create([
@@ -83,7 +84,7 @@ class UserModelTest extends TestCase
         $this->assertEquals('Dupont', $claims['lastName']);
     }
 
-    /** @test */
+    #[Test]
     public function user_can_get_jwt_identifier()
     {
         $user = User::factory()->create();
@@ -91,7 +92,7 @@ class UserModelTest extends TestCase
         $this->assertEquals($user->id, $user->getJWTIdentifier());
     }
 
-    /** @test */
+    #[Test]
     public function user_fillable_attributes_are_correct()
     {
         $fillable = [
@@ -108,7 +109,7 @@ class UserModelTest extends TestCase
         $this->assertEquals($fillable, $user->getFillable());
     }
 
-    /** @test */
+    #[Test]
     public function user_hidden_attributes_include_password()
     {
         $user = new User();
@@ -118,7 +119,7 @@ class UserModelTest extends TestCase
         $this->assertContains('remember_token', $hidden);
     }
 
-    /** @test */
+    #[Test]
     public function user_email_verified_at_is_cast_to_datetime()
     {
         $user = User::factory()->create([
