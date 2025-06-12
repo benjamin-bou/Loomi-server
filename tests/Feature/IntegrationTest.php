@@ -29,11 +29,11 @@ class IntegrationTest extends TestCase
         $this->category = BoxCategory::factory()->create([
             'short_name' => 'test-category'
         ]);
-
         $this->box = Box::factory()->create([
             'box_category_id' => $this->category->id,
             'name' => 'Boîte Test',
-            'base_price' => 25.99
+            'base_price' => 25.99,
+            'active' => 1
         ]);
         $this->subscriptionType = SubscriptionType::factory()->create([
             'label' => 'Abonnement Test',
