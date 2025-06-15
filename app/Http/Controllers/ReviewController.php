@@ -13,7 +13,52 @@ use Illuminate\Support\Facades\Log;
 class ReviewController extends Controller
 {
     /**
-     * Créer un nouvel avis
+     * @OA\Post(
+     *     path="/reviews",
+     *     tags={"Reviews"},
+     *     summary="Create a new review",
+     *     description="Create a new review for a box that the user has received",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/ReviewCreate")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Review created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Avis créé avec succès"),
+     *             @OA\Property(property="review", ref="#/components/schemas/Review")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Cannot review box not received",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="Vous ne pouvez laisser un avis que pour des boîtes que vous avez reçues")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Review already exists",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="Vous avez déjà laissé un avis pour cette boîte")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -70,7 +115,38 @@ class ReviewController extends Controller
     }
 
     /**
-     * Récupérer l'avis d'un utilisateur pour une boîte
+     * @OA\Get(
+     *     path="/reviews/user/{boxId}",
+     *     tags={"Reviews"},
+     *     summary="Get user review for a box",
+     *     description="Get the authenticated user's review for a specific box",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="boxId",
+     *         in="path",
+     *         required=true,
+     *         description="Box ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User review retrieved successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/Review")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Review not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Aucun avis trouvé")
+     *         )
+     *     )
+     * )
      */
     public function getUserReview(Request $request, $boxId)
     {
@@ -93,7 +169,49 @@ class ReviewController extends Controller
     }
 
     /**
-     * Récupérer tous les avis d'une boîte
+     * @OA\Get(
+     *     path="/boxes/{id}/reviews",
+     *     tags={"Reviews"},
+     *     summary="Get reviews for a box",
+     *     description="Get all reviews for a specific box with pagination",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Box ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Box reviews retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="reviews",
+     *                 allOf={@OA\Schema(ref="#/components/schemas/PaginatedResponse")}
+     *             ),
+     *             @OA\Property(property="average_rating", type="number", format="float", example=4.2),
+     *             @OA\Property(property="total_reviews", type="integer", example=25)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Box not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function getBoxReviews($boxId)
     {
@@ -122,7 +240,56 @@ class ReviewController extends Controller
     }
 
     /**
-     * Mettre à jour un avis existant
+     * @OA\Put(
+     *     path="/reviews/{id}",
+     *     tags={"Reviews"},
+     *     summary="Update a review",
+     *     description="Update an existing review (only by the review author)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Review ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/ReviewUpdate")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Review updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Avis mis à jour avec succès"),
+     *             @OA\Property(property="review", ref="#/components/schemas/Review")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Cannot modify this review",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="Vous ne pouvez modifier que vos propres avis")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Review not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function update(Request $request, $reviewId)
     {
@@ -162,7 +329,46 @@ class ReviewController extends Controller
     }
 
     /**
-     * Supprimer un avis
+     * @OA\Delete(
+     *     path="/reviews/{id}",
+     *     tags={"Reviews"},
+     *     summary="Delete a review",
+     *     description="Delete an existing review (only by the review author)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Review ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Review deleted successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Avis supprimé avec succès")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Cannot delete this review",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="error", type="string", example="Vous ne pouvez supprimer que vos propres avis")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Review not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function destroy($reviewId)
     {

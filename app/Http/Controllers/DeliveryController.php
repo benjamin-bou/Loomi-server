@@ -12,7 +12,41 @@ use Illuminate\Support\Facades\Auth;
 class DeliveryController extends Controller
 {
     /**
-     * Récupère toutes les livraisons d'un utilisateur (commandes + abonnements)
+     * @OA\Get(
+     *     path="/profile/deliveries",
+     *     tags={"Deliveries"},
+     *     summary="Get user deliveries",
+     *     description="Retrieve all deliveries for the authenticated user (orders and subscription deliveries)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deliveries retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", example="order_1_1"),
+     *                 @OA\Property(property="delivery_type", type="string", enum={"order", "subscription"}, example="order"),
+     *                 @OA\Property(property="box_id", type="integer", example=1),
+     *                 @OA\Property(property="box_name", type="string", example="Beauty Box Premium"),
+     *                 @OA\Property(property="order_number", type="string", example="ORD-20241201-001"),
+     *                 @OA\Property(property="quantity", type="integer", example=1),
+     *                 @OA\Property(property="order_date", type="string", format="date-time"),
+     *                 @OA\Property(property="delivery_date", type="string", format="date-time"),
+     *                 @OA\Property(property="status", type="string", enum={"pending", "shipped", "delivered", "completed"}, example="delivered"),
+     *                 @OA\Property(property="tracking_number", type="string", nullable=true, example="TR123456789"),
+     *                 @OA\Property(property="delivery_address", type="string", nullable=true),
+     *                 @OA\Property(property="can_review", type="boolean", example=true),
+     *                 @OA\Property(property="is_delivered", type="boolean", example=true)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function getUserDeliveries(Request $request)
     {
@@ -83,29 +117,43 @@ class DeliveryController extends Controller
     }
 
     /**
-     * Détermine le statut d'une commande
-     */
-    private function getOrderStatus($order)
-    {
-        // Logique simple pour déterminer le statut
-        // Vous pouvez l'adapter selon votre logique métier
-        if ($order->tracking_number) {
-            return 'shipped';
-        }
-
-        if (in_array($order->status, ['completed', 'delivered'])) {
-            return 'delivered';
-        }
-
-        if ($order->status === 'cancelled') {
-            return 'cancelled';
-        }
-
-        return 'pending';
-    }
-
-    /**
-     * Ajouter une livraison d'abonnement (appelé automatiquement lors de l'envoi d'une boîte)
+     * @OA\Post(
+     *     path="/subscription-deliveries",
+     *     tags={"Deliveries"},
+     *     summary="Add subscription delivery",
+     *     description="Add a new delivery for a subscription (admin only)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"subscription_id", "box_id", "delivery_date"},
+     *             @OA\Property(property="subscription_id", type="integer", example=1),
+     *             @OA\Property(property="box_id", type="integer", example=1),
+     *             @OA\Property(property="delivery_date", type="string", format="date", example="2024-02-01"),
+     *             @OA\Property(property="tracking_number", type="string", example="TR123456789")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Subscription delivery added successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Livraison d'abonnement ajoutée avec succès"),
+     *             @OA\Property(property="delivery", ref="#/components/schemas/SubscriptionDelivery")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function addSubscriptionDelivery(Request $request)
     {
@@ -128,7 +176,39 @@ class DeliveryController extends Controller
     }
 
     /**
-     * Marquer une livraison d'abonnement comme livrée
+     * @OA\Patch(
+     *     path="/subscription-deliveries/{id}/delivered",
+     *     tags={"Deliveries"},
+     *     summary="Mark delivery as delivered",
+     *     description="Mark a subscription delivery as delivered (admin only)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Subscription delivery ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Delivery marked as delivered successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Livraison marquée comme livrée avec succès"),
+     *             @OA\Property(property="delivery", ref="#/components/schemas/SubscriptionDelivery")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Delivery not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function markAsDelivered(Request $request, $id)
     {
@@ -146,6 +226,28 @@ class DeliveryController extends Controller
             'message' => 'Livraison marquée comme livrée',
             'delivery' => $delivery->load(['box', 'subscription'])
         ]);
+    }
+
+    /**
+     * Détermine le statut d'une commande
+     */
+    private function getOrderStatus($order)
+    {
+        // Logique simple pour déterminer le statut
+        // Vous pouvez l'adapter selon votre logique métier
+        if ($order->tracking_number) {
+            return 'shipped';
+        }
+
+        if (in_array($order->status, ['completed', 'delivered'])) {
+            return 'delivered';
+        }
+
+        if ($order->status === 'cancelled') {
+            return 'cancelled';
+        }
+
+        return 'pending';
     }
 
     /**

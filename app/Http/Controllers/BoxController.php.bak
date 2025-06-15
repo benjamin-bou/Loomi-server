@@ -1,0 +1,173 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Box;
+use Illuminate\Support\Facades\Auth;
+
+class BoxController extends Controller
+{
+    public function index()
+     *     description="Retrieve all active subscription boxes with their categories",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of active boxes",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Box")
+     *         )
+     *     )
+     * )
+     */
+    public function index()
+    {
+        return response()->json(Box::where('active', 1)->with('category')->get());
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/boxes/{id}",
+     *     tags={"Boxes"},
+     *     summary="Get box details",
+     *     description="Retrieve detailed information about a specific box including items and category",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Box ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Box details",
+     *         @OA\JsonContent(ref="#/components/schemas/Box")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Box not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
+     */
+    public function show($id)
+    {
+        // $box = Box::with(['items', 'categories'])->findOrFail($id);
+        $box = Box::with(['items', 'category'])->findOrFail($id);
+        return response()->json($box);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/admin/boxes",
+     *     tags={"Boxes"},
+     *     summary="Get all boxes (Admin)",
+     *     description="Retrieve all boxes including inactive ones (admin only)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of all boxes",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Box")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin role required",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
+     */
+    public function adminIndex()
+    {
+        $user = Auth::user(); // replaced auth()->user()
+
+        if ($user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return response()->json(Box::with('category')->get());
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/admin/boxes/{id}",
+     *     tags={"Boxes"},
+     *     summary="Update box (Admin)",
+     *     description="Update box information (admin only)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Box ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"name", "base_price"},
+     *             @OA\Property(property="name", type="string", example="Premium Beauty Box"),
+     *             @OA\Property(property="description", type="string", example="Updated description"),
+     *             @OA\Property(property="base_price", type="number", format="float", example=35.99)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Box updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Box updated successfully"),
+     *             @OA\Property(property="box", ref="#/components/schemas/Box")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden - Admin role required",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Box not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
+     */
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $box = Box::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'base_price' => 'required|numeric|min:0',
+        ]);
+
+        $box->update($validatedData);
+
+        return response()->json(['message' => 'Box updated successfully', 'box' => $box]);
+    }
+}

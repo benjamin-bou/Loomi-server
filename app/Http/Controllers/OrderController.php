@@ -17,9 +17,31 @@ use Carbon\Carbon;
 class OrderController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/orders",
+     *     tags={"Orders"},
+     *     summary="Get user orders",
+     *     description="Retrieve all orders for the authenticated user",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User orders retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="user", ref="#/components/schemas/User"),
+     *             @OA\Property(
+     *                 property="orders",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Order")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function index()
     {
@@ -50,10 +72,58 @@ class OrderController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @OA\Post(
+     *     path="/order",
+     *     tags={"Orders"},
+     *     summary="Create new order",
+     *     description="Create a new order with subscription or gift cards",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"items", "payment_method"},
+     *             @OA\Property(
+     *                 property="items",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="type", type="string", enum={"subscription", "gift_card"}, example="subscription"),
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="quantity", type="integer", example=1)
+     *                 )
+     *             ),
+     *             @OA\Property(property="payment_method", type="string", example="cb"),
+     *             @OA\Property(property="gift_card_id", type="integer", example=1, description="Gift card to use for payment")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Order created successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Commande créée avec succès"),
+     *             @OA\Property(property="order", ref="#/components/schemas/Order"),
+     *             @OA\Property(property="subscription", ref="#/components/schemas/Subscription")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request - Invalid data",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function store(Request $request)
     {
@@ -700,9 +770,29 @@ class OrderController extends Controller
     }
 
     /**
-     * Get available payment methods with frontend mappings
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/payment-methods",
+     *     tags={"Orders"},
+     *     summary="Get available payment methods",
+     *     description="Retrieve all available payment methods for orders",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment methods retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="key", type="string", example="cb"),
+     *                 @OA\Property(property="label", type="string", example="Carte bancaire")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function getPaymentMethods()
     {

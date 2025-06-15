@@ -10,20 +10,97 @@ use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
-    // Liste tous les types d'abonnement
+    /**
+     * @OA\Get(
+     *     path="/subscriptions",
+     *     tags={"Subscriptions"},
+     *     summary="Get all subscription types",
+     *     description="Retrieve all available subscription types",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of subscription types",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/SubscriptionType")
+     *         )
+     *     )
+     * )
+     */
     public function index()
     {
         return response()->json(SubscriptionType::all());
     }
 
-    // Détail d'un type d'abonnement
+    /**
+     * @OA\Get(
+     *     path="/subscriptions/{id}",
+     *     tags={"Subscriptions"},
+     *     summary="Get subscription type details",
+     *     description="Retrieve detailed information about a specific subscription type",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Subscription type ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription type details",
+     *         @OA\JsonContent(ref="#/components/schemas/SubscriptionType")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Subscription type not found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
+     */
     public function show($id)
     {
         $subscriptionType = SubscriptionType::findOrFail($id);
         return response()->json($subscriptionType);
     }
 
-    // Abonnement en cours de l'utilisateur connecté
+    /**
+     * @OA\Get(
+     *     path="/my-subscription",
+     *     tags={"Subscriptions"},
+     *     summary="Get current user subscription",
+     *     description="Retrieve current user's active subscription with gift card extensions",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Current subscription details",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="subscription", ref="#/components/schemas/Subscription"),
+     *             @OA\Property(property="user", ref="#/components/schemas/User"),
+     *             @OA\Property(
+     *                 property="gift_card_extensions",
+     *                 type="object",
+     *                 @OA\Property(property="total_months", type="integer", example=3),
+     *                 @OA\Property(
+     *                     property="details",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="object",
+     *                         @OA\Property(property="code", type="string", example="GIFT123"),
+     *                         @OA\Property(property="type_name", type="string", example="3 mois"),
+     *                         @OA\Property(property="months", type="integer", example=3),
+     *                         @OA\Property(property="used_at", type="string", format="date-time")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
+     */
     public function current()
     {
         $user = Auth::user();
@@ -41,6 +118,67 @@ class SubscriptionController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/cancel-subscription",
+     *     tags={"Subscriptions"},
+     *     summary="Cancel user subscription",
+     *     description="Cancel the current user's active subscription",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription cancelled successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="No active subscription found",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
+     */
+    public function cancel()
+    {
+        $user = Auth::user();
+        $order = $user->orders()->where('active', true)->whereNotNull('subscription_id')->latest()->first();
+
+        if (!$order || !$order->subscription) {
+            return response()->json(['error' => 'Aucun abonnement actif trouvé'], 404);
+        }
+
+        $subscription = $order->subscription;
+
+        // Vérifier si l'abonnement peut être annulé
+        if ($subscription->status === 'cancelled') {
+            return response()->json(['error' => 'Cet abonnement est déjà annulé'], 400);
+        }
+
+        if ($subscription->status === 'expired') {
+            return response()->json(['error' => 'Cet abonnement a déjà expiré'], 400);
+        }
+
+        // Annuler l'abonnement
+        $subscription->update([
+            'status' => 'cancelled',
+            'auto_renew' => false
+        ]);
+
+        // Désactiver la commande associée
+        $order->update([
+            'active' => false
+        ]);
+
+        return response()->json([
+            'message' => 'Abonnement annulé avec succès',
+            'subscription' => $subscription->fresh()->load('type')
+        ]);
     }
 
     /**
@@ -88,43 +226,5 @@ class SubscriptionController extends Controller
             'total_months_offered' => $totalGiftCardMonths,
             'details' => $giftCardDetails
         ];
-    }
-
-    // Annuler l'abonnement en cours
-    public function cancel()
-    {
-        $user = Auth::user();
-        $order = $user->orders()->where('active', true)->whereNotNull('subscription_id')->latest()->first();
-
-        if (!$order || !$order->subscription) {
-            return response()->json(['error' => 'Aucun abonnement actif trouvé'], 404);
-        }
-
-        $subscription = $order->subscription;
-
-        // Vérifier si l'abonnement peut être annulé
-        if ($subscription->status === 'cancelled') {
-            return response()->json(['error' => 'Cet abonnement est déjà annulé'], 400);
-        }
-
-        if ($subscription->status === 'expired') {
-            return response()->json(['error' => 'Cet abonnement a déjà expiré'], 400);
-        }
-
-        // Annuler l'abonnement
-        $subscription->update([
-            'status' => 'cancelled',
-            'auto_renew' => false
-        ]);
-
-        // Désactiver la commande associée
-        $order->update([
-            'active' => false
-        ]);
-
-        return response()->json([
-            'message' => 'Abonnement annulé avec succès',
-            'subscription' => $subscription->fresh()->load('type')
-        ]);
     }
 }

@@ -11,9 +11,20 @@ use Illuminate\Support\Facades\Log;
 class GiftCardController extends Controller
 {
     /**
-     * Display a listing of the gift cards.
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/gift-cards",
+     *     tags={"Gift Cards"},
+     *     summary="Get all gift card types",
+     *     description="Retrieve all active gift card types available for purchase",
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of active gift card types",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/GiftCardType")
+     *         )
+     *     )
+     * )
      */
     public function index()
     {
@@ -21,10 +32,55 @@ class GiftCardController extends Controller
     }
 
     /**
-     * Activer une carte cadeau avec son code
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @OA\Post(
+     *     path="/gift-cards/activate",
+     *     tags={"Gift Cards"},
+     *     summary="Activate gift card",
+     *     description="Activate a gift card using its code and assign it to the authenticated user",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/GiftCardActivation")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Gift card activated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Carte cadeau activée avec succès!"),
+     *             @OA\Property(property="gift_card", ref="#/components/schemas/GiftCard")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Gift card already activated or invalid",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Cette carte cadeau est déjà utilisée")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Gift card not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Code de carte cadeau invalide")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *     )
+     * )
      */
     public function activate(Request $request)
     {
@@ -113,9 +169,26 @@ class GiftCardController extends Controller
     }
 
     /**
-     * Récupérer les cartes cadeaux activées par l'utilisateur connecté
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     path="/my-gift-cards",
+     *     tags={"Gift Cards"},
+     *     summary="Get user gift cards",
+     *     description="Retrieve all gift cards belonging to the authenticated user",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User gift cards retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/GiftCard")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiError")
+     *     )
+     * )
      */
     public function getUserGiftCards()
     {

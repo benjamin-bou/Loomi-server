@@ -22,6 +22,7 @@ Le backend Loomi utilise une architecture Laravel moderne avec :
 - **MySQL** - Base de données principale
 - **JWT** - Authentification
 - **MySQL**
+- **Swagger/OpenAPI** - Documentation API interactive
 - **PHPUnit** - Tests automatisés
 - **GitLab CI/CD** - Intégration continue
 
@@ -170,7 +171,72 @@ npm run coverage:report
 - **Tests unitaires** : Modèles, relations, logique métier
 - **Tests de fonctionnalités** : Parcours utilisateur complets
 
-## 📚 API Documentation
+## 📚 Documentation API
+
+### 🚀 Documentation Interactive Swagger
+
+**La documentation complète de l'API est disponible via une interface Swagger interactive :**
+
+**🔗 [Accéder à la documentation API](http://localhost:8000/api/documentation)**
+
+Cette interface moderne vous permet de :
+
+- 📋 **Explorer** tous les endpoints organisés par catégories (Authentication, Boxes, Orders, etc.)
+- 🧪 **Tester** les requêtes API directement depuis le navigateur
+- 📊 **Visualiser** les schémas de données avec des exemples concrets
+
+#### Utilisation de l'interface Swagger
+
+1. **Ouvrez** [http://localhost:8000/api/documentation](http://localhost:8000/api/documentation)
+2. **Explorez** les différentes sections (Authentication, Boxes, Orders, etc.)
+3. **Authentifiez-vous** pour tester les endpoints protégés :
+
+   #### 🔐 Comment obtenir et utiliser un token JWT
+
+   **Étape 1 : Obtenir un token d'authentification**
+   
+   1. Dans l'interface Swagger, naviguez vers la section **"Authentication"**
+   2. Cliquez sur **"POST /login"** pour l'ouvrir
+   3. Cliquez sur **"Try it out"**
+   4. Utilisez l'un de ces comptes de test dans le champ Request body :
+   
+   **Compte utilisateur :**
+   ```json
+   {
+     "email": "user@example.com",
+     "password": "password"
+   }
+   ```
+   
+   **Compte administrateur :**
+   ```json
+   {
+     "email": "admin@example.com",
+     "password": "password"
+   }
+   ```
+   
+   5. Cliquez sur **"Execute"**
+   6. Dans la réponse (section "Response body"), **copiez la valeur du champ `access_token`**
+   
+   **Étape 2 : Utiliser le token pour l'authentification**
+   
+   1. En haut de la page Swagger, cliquez sur le bouton **"Authorize"** 🔒
+   2. Dans la popup qui s'ouvre, collez votre token dans le champ **"Value"**
+   3. Cliquez sur **"Authorize"** puis **"Close"**
+   4. ✅ Vous êtes maintenant authentifié ! Vous pouvez tester tous les endpoints protégés
+
+   > **💡 Note :** Le token JWT a une durée de vie limitée. Si vous recevez une erreur 401, répétez le processus pour obtenir un nouveau token.
+
+4. **Testez** les endpoints directement depuis l'interface
+
+#### Régénérer la documentation
+
+```bash
+php artisan l5-swagger:generate
+```
+
+### Aperçu des endpoints
 
 ### Authentification
 
@@ -180,7 +246,7 @@ Tous les endpoints protégés nécessitent un token JWT dans le header :
 Authorization: Bearer your_jwt_token
 ```
 
-Quelques exemples d'endpoints :
+Quelques exemples d'endpoints (voir la documentation Swagger complète pour tous les détails) :
 
 ### Endpoints publics
 
