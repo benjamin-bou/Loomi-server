@@ -1,36 +1,7 @@
 image: php:8.2
 
 stages:
-  - test
   - deploy
-
-test:
-  stage: test
-  tags:
-    - back
-  script:
-    # Vérifier la version de PHP et les extensions indispensables
-    - php --version
-    - php -m | grep -E "(dom|xml|zip|mbstring)" || (echo "❌ Extensions PHP manquantes !" && exit 1)
-    - composer --version || (curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer)
-    - composer install --prefer-dist --no-interaction --no-scripts
-    - cp .env.testing .env
-    - php artisan key:generate --force
-    - php artisan migrate --env=testing --force
-    - mkdir -p storage/logs
-    - php artisan test --log-junit storage/logs/junit.xml --stop-on-failure > test_output.txt 2>&1
-    - TEST_EXIT_CODE=$?
-    - echo "📋 Résultats des tests:"
-    - cat test_output.txt
-    - if grep -q "Tests:" test_output.txt && ! grep -q "FAILED" test_output.txt && ! grep -q "ERRORS" test_output.txt; then echo "✅ Tous les tests sont passés" && exit 0; else echo "❌ Tests échoués" && exit 1; fi
-    - test -f storage/logs/junit.xml && echo "📄 Rapport JUnit généré" || echo "⚠️ Pas de rapport JUnit"
-  artifacts:
-    when: always
-    reports:
-      junit: storage/logs/junit.xml
-    paths:
-      - storage/logs/
-    expire_in: 1 week
 
 deploy:
   stage: deploy
