@@ -17,13 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
-            BoxItemSeeder::class,
             BoxCategorySeeder::class,
+            ItemSeeder::class, // Créer les items avant les boîtes
             BoxSeeder::class,
+            BoxImageSeeder::class, // Nouveau seeder pour les images
+            BoxItemSeeder::class, // Après avoir créé les boîtes et les items
             GiftCardSeeder::class,
             PaymentMethodTypeSeeder::class,
             OrderSeeder::class,
-            ItemSeeder::class,
             SubscriptionTypeSeeder::class,
         ]);
     }

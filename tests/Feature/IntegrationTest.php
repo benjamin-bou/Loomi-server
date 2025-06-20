@@ -22,31 +22,42 @@ class IntegrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $category;
+    protected $box;
+    protected $subscriptionType;
+    protected $giftCardType;
+    protected $paymentMethodType;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Exécuter les seeders nécessaires
+        $this->seed(\Database\Seeders\GiftCardTypeSeeder::class);
 
         // Créer les données de base nécessaires
         $this->category = BoxCategory::factory()->create([
             'short_name' => 'test-category'
         ]);
-        $this->box = Box::factory()->create([
-            'box_category_id' => $this->category->id,
+        $this->box = Box::create([
             'name' => 'Boîte Test',
+            'description' => 'Description de test',
             'base_price' => 25.99,
-            'active' => 1
+            'active' => 1,
+            'quantity' => 50,
+            'available_from' => now(),
+            'box_category_id' => $this->category->id
         ]);
-        $this->subscriptionType = SubscriptionType::factory()->create([
+        $this->subscriptionType = SubscriptionType::create([
             'label' => 'Abonnement Test',
-            'price' => 29.99
+            'price' => 29.99,
+            'duration_months' => 1,
+            'active' => true
         ]);
 
-        $this->giftCardType = GiftCardType::factory()->create([
-            'name' => 'Carte Cadeau Test',
-            'base_price' => 50.00
-        ]);
+        $this->giftCardType = GiftCardType::where('name', '1 BOX')->first();
 
-        $this->paymentMethodType = PaymentMethodType::factory()->create([
+        $this->paymentMethodType = PaymentMethodType::create([
             'name' => 'Credit Card'
         ]);
     }

@@ -14,11 +14,28 @@ class BoxModelTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function createTestBox($category = null, $overrides = [])
+    {
+        if (!$category) {
+            $category = BoxCategory::factory()->create();
+        }
+
+        return Box::create(array_merge([
+            'name' => 'Test Box',
+            'description' => 'Test description',
+            'base_price' => 29.90,
+            'active' => true,
+            'quantity' => 10,
+            'available_from' => now(),
+            'box_category_id' => $category->id
+        ], $overrides));
+    }
+
     #[Test]
     public function box_belongs_to_category()
     {
         $category = BoxCategory::factory()->create();
-        $box = Box::factory()->create(['box_category_id' => $category->id]);
+        $box = $this->createTestBox($category);
 
         $this->assertInstanceOf(BoxCategory::class, $box->category);
         $this->assertEquals($category->id, $box->category->id);
@@ -27,7 +44,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_has_many_reviews()
     {
-        $box = Box::factory()->create();
+        $box = $this->createTestBox();
         $reviews = Review::factory()->count(3)->create(['box_id' => $box->id]);
 
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $box->reviews);
@@ -38,7 +55,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_can_calculate_average_rating()
     {
-        $box = Box::factory()->create();
+        $box = $this->createTestBox();
 
         // Créer des avis avec différentes notes
         Review::factory()->create(['box_id' => $box->id, 'rating' => 5.0]);
@@ -53,7 +70,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_average_rating_returns_null_when_no_reviews()
     {
-        $box = Box::factory()->create();
+        $box = $this->createTestBox();
 
         $averageRating = $box->averageRating();
 
@@ -63,7 +80,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_can_count_total_reviews()
     {
-        $box = Box::factory()->create();
+        $box = $this->createTestBox();
         Review::factory()->count(5)->create(['box_id' => $box->id]);
 
         $totalReviews = $box->totalReviews();
@@ -90,7 +107,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_belongs_to_many_items()
     {
-        $box = Box::factory()->create();
+        $box = $this->createTestBox();
         $items = Item::factory()->count(3)->create();
 
         // Attacher les items à la boîte avec des quantités
@@ -109,8 +126,8 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_scope_active_filters_correctly()
     {
-        $activeBox = Box::factory()->create(['active' => true]);
-        $inactiveBox = Box::factory()->create(['active' => false]);
+        $activeBox = $this->createTestBox(null, ['active' => true]);
+        $inactiveBox = $this->createTestBox(null, ['active' => false]);
 
         $activeBoxes = Box::where('active', true)->get();
 
@@ -121,7 +138,7 @@ class BoxModelTest extends TestCase
     #[Test]
     public function box_price_is_stored_as_decimal()
     {
-        $box = Box::factory()->create(['base_price' => 19.99]);
+        $box = $this->createTestBox(null, ['base_price' => 19.99]);
 
         $this->assertEquals(19.99, $box->base_price);
         $this->assertIsFloat($box->base_price);

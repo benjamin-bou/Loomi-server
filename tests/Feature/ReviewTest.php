@@ -16,12 +16,21 @@ class ReviewTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $category;
+    protected $box;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->category = BoxCategory::factory()->create();
-        $this->box = Box::factory()->create([
+        $this->box = Box::create([
+            'name' => 'Test Review Box',
+            'description' => 'Box for review testing',
+            'base_price' => 29.90,
+            'active' => true,
+            'quantity' => 20,
+            'available_from' => now(),
             'box_category_id' => $this->category->id
         ]);
     }

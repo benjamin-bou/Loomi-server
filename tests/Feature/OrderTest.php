@@ -18,23 +18,38 @@ class OrderTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $category;
+    protected $box;
+    protected $paymentMethodType;
+    protected $subscriptionType;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Exécuter les seeders nécessaires
+        $this->seed(\Database\Seeders\GiftCardTypeSeeder::class);
+
         // Créer les données de test nécessaires
         $this->category = BoxCategory::factory()->create();
-        $this->box = Box::factory()->create([
-            'box_category_id' => $this->category->id,
-            'base_price' => 19.99
+        $this->box = Box::create([
+            'name' => 'Test Box Order',
+            'description' => 'Test description for order',
+            'base_price' => 19.99,
+            'active' => true,
+            'quantity' => 50,
+            'available_from' => now(),
+            'box_category_id' => $this->category->id
         ]);
 
-        $this->paymentMethodType = PaymentMethodType::factory()->create([
+        $this->paymentMethodType = PaymentMethodType::create([
             'name' => 'Credit Card'
         ]);
-        $this->subscriptionType = SubscriptionType::factory()->create([
+        $this->subscriptionType = SubscriptionType::create([
             'label' => 'Mensuel',
-            'price' => 24.99
+            'price' => 24.99,
+            'duration_months' => 1,
+            'active' => true
         ]);
     }
 
@@ -162,10 +177,8 @@ class OrderTest extends TestCase
         $user = $this->createUser();
         $token = $this->getJWTToken($user);
 
-        $giftCardType = GiftCardType::factory()->create([
-            'name' => 'Carte Cadeau 50€',
-            'base_price' => 50.00
-        ]);
+        // Utiliser une carte cadeau du seeder
+        $giftCardType = GiftCardType::where('name', '1 BOX')->first();
 
         $orderData = [
             'items' => [
@@ -257,9 +270,8 @@ class OrderTest extends TestCase
         $user = $this->createUser();
         $token = $this->getJWTToken($user);
 
-        $giftCardType = GiftCardType::factory()->create([
-            'base_price' => 25.00
-        ]);
+        // Utiliser une carte cadeau du seeder
+        $giftCardType = GiftCardType::where('name', '1 BOX')->first();
 
         $orderData = [
             'items' => [

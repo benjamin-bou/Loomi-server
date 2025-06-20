@@ -10,13 +10,13 @@ class BoxController extends Controller
 {
     public function index()
     {
-        return response()->json(Box::where('active', 1)->with('category')->get());
+        return response()->json(Box::where('active', 1)->with(['category', 'images'])->get());
     }
 
     public function show($id)
     {
         // $box = Box::with(['items', 'categories'])->findOrFail($id);
-        $box = Box::with(['items', 'category'])->findOrFail($id);
+        $box = Box::with(['items', 'category', 'images'])->findOrFail($id);
         return response()->json($box);
     }
 
@@ -28,7 +28,7 @@ class BoxController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        return response()->json(Box::with('category')->get());
+        return response()->json(Box::with(['category', 'images'])->get());
     }
 
     public function update(Request $request, $id)

@@ -6,6 +6,7 @@ use Tests\TestCase;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Box;
+use App\Models\BoxCategory;
 use App\Models\Subscription;
 use App\Models\PaymentMethod;
 use App\Models\PaymentMethodType;
@@ -16,6 +17,21 @@ use PHPUnit\Framework\Attributes\Test;
 class OrderModelTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function createTestBox($overrides = [])
+    {
+        $category = BoxCategory::factory()->create();
+
+        return Box::create(array_merge([
+            'name' => 'Test Box',
+            'description' => 'Test description',
+            'base_price' => 29.90,
+            'active' => true,
+            'quantity' => 10,
+            'available_from' => now(),
+            'box_category_id' => $category->id
+        ], $overrides));
+    }
 
     #[Test]
     public function order_belongs_to_user()
@@ -77,7 +93,10 @@ class OrderModelTest extends TestCase
     public function order_belongs_to_many_boxes()
     {
         $order = Order::factory()->create();
-        $boxes = Box::factory()->count(2)->create();
+        $boxes = collect([
+            $this->createTestBox(['name' => 'Box 1']),
+            $this->createTestBox(['name' => 'Box 2'])
+        ]);
 
         // Créer des BoxOrders pour lier l'ordre aux boîtes
         foreach ($boxes as $index => $box) {
@@ -169,8 +188,8 @@ class OrderModelTest extends TestCase
     public function order_can_calculate_total_from_box_orders()
     {
         $order = Order::factory()->create(['total_amount' => 0]);
-        $box1 = Box::factory()->create(['base_price' => 15.00]);
-        $box2 = Box::factory()->create(['base_price' => 20.00]);
+        $box1 = $this->createTestBox(['base_price' => 15.00]);
+        $box2 = $this->createTestBox(['base_price' => 20.00]);
 
         BoxOrder::factory()->create([
             'order_id' => $order->id,

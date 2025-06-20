@@ -20,7 +20,7 @@ class GiftCardFactory extends Factory
             'code' => strtoupper($this->faker->unique()->bothify('???-###-???')),
             'expiration_date' => $this->faker->optional()->dateTimeBetween('now', '+1 year'),
             'used_at' => null,
-            'gift_card_type_id' => \App\Models\GiftCardType::factory(),
+            'gift_card_type_id' => 1, // Référence au premier type de carte cadeau du seeder
             'order_id' => null,
             'activated_by' => null,
         ];

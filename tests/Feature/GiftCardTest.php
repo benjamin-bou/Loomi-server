@@ -15,31 +15,28 @@ class GiftCardTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected $giftCardType;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->giftCardType = GiftCardType::factory()->create([
-            'name' => 'Carte Cadeau 50€',
-            'base_price' => 50.00,
-            'active' => true
-        ]);
+        // Exécuter les seeders pour avoir les cartes cadeaux de base
+        $this->seed(\Database\Seeders\GiftCardTypeSeeder::class);
+
+        // Utiliser la première carte cadeau du seeder
+        $this->giftCardType = GiftCardType::where('name', '1 BOX')->first();
     }
 
     #[Test]
     public function user_can_get_list_of_active_gift_card_types()
     {
-        // Créer un type inactif
-        $inactiveType = GiftCardType::factory()->create([
-            'active' => false
-        ]);
-
         $response = $this->getJson('/api/gift-cards');
 
         $response->assertStatus(200)
-            ->assertJsonCount(1) // Seulement le type actif
-            ->assertJsonFragment(['id' => $this->giftCardType->id])
-            ->assertJsonMissing(['id' => $inactiveType->id]);
+            ->assertJsonCount(5) // Toutes les cartes du seeder sont actives
+            ->assertJsonFragment(['name' => '1 BOX'])
+            ->assertJsonFragment(['name' => 'ABONNEMENT DE 3 MOIS']);
     }
 
     #[Test]

@@ -64,4 +64,12 @@ class Box extends Model
     {
         return $this->reviewsCount();
     }
+
+    /**
+     * Relation vers les images de la boîte
+     */
+    public function images()
+    {
+        return $this->hasMany(BoxImage::class);
+    }
 }
