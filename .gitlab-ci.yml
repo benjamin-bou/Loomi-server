@@ -14,9 +14,5 @@ deploy:
     - echo "✅ Déploiement terminé"
   only:
     - main
-  dependencies:
-    - test
-  needs:
-    - test
   tags:
     - back
