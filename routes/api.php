@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ArticleController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,6 +26,10 @@ Route::post('gift-cards/activate', [GiftCardController::class, 'activate']);
 Route::get('payment-methods', [OrderController::class, 'getPaymentMethods']);
 
 Route::get('/boxes/{id}/reviews', [ReviewController::class, 'getBoxReviews']);
+
+// Routes pour les articles (blog)
+Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles/{id}', [ArticleController::class, 'show']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
