@@ -19,6 +19,8 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->integer('quantity')->default(0);
             $table->date('available_from')->nullable();
+            $table->text('delivery')->nullable();
+            $table->text('return_policy')->nullable();
             $table->foreignId('box_category_id')->nullable()->constrained('box_categories')->nullOnDelete();
             $table->timestamps();
         });
@@ -29,11 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Remove foreign key constraint from box_orders table before dropping boxes table
-        Schema::table('box_orders', function (Blueprint $table) {
-            $table->dropForeign(['box_id']);
-        });
-
         Schema::dropIfExists('boxes');
     }
 };

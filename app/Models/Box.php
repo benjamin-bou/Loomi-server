@@ -21,6 +21,8 @@ class Box extends Model
         'base_price',
         'active',
         'box_category_id',
+        'delivery',
+        'return_policy',
     ];
 
     public function items()

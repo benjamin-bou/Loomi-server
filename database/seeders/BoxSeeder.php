@@ -26,6 +26,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 45,
                 'available_from' => now(),
                 'box_category_id' => $activiteCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
             [
                 'name' => 'Box création savon',
@@ -35,6 +37,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 60,
                 'available_from' => now(),
                 'box_category_id' => $diyCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
             [
                 'name' => 'Box mystère',
@@ -44,6 +48,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 30,
                 'available_from' => now(),
                 'box_category_id' => $activiteCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
             [
                 'name' => 'Box peinture',
@@ -53,6 +59,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 50,
                 'available_from' => now(),
                 'box_category_id' => $activiteCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
             [
                 'name' => 'Box création bougie',
@@ -62,6 +70,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 70,
                 'available_from' => now(),
                 'box_category_id' => $diyCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
             [
                 'name' => 'Box tricot',
@@ -71,6 +81,8 @@ class BoxSeeder extends Seeder
                 'quantity' => 40,
                 'available_from' => now(),
                 'box_category_id' => $activiteCategory?->id,
+                'delivery' => 'Livraison gratuite en France métropolitaine sous 3-5 jours ouvrés. Expédition par Colissimo ou en point relais selon votre choix.',
+                'return_policy' => 'Retours acceptés sous 14 jours. Produit non ouvert et en parfait état. Frais de retour à votre charge.',
             ],
         ];
 
