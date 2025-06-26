@@ -17,6 +17,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->string('recurrence')->default('monthly'); // ex: 'monthly', 'quarterly', etc.
+            $table->text('details')->nullable();
+            $table->text('delivery')->nullable();
             $table->timestamps();
         });
     }

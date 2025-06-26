@@ -19,6 +19,8 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->integer('quantity')->default(0);
             $table->date('available_from')->nullable();
+            $table->text('details')->nullable();
+            $table->text('delivery')->nullable();
             $table->foreignId('box_category_id')->nullable()->constrained('box_categories')->nullOnDelete();
             $table->timestamps();
         });
