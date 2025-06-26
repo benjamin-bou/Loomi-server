@@ -238,7 +238,10 @@ class ReviewController extends Controller
         ];
 
         foreach ($reviews as $review) {
-            $ratingKey = (string)$review->rating;
+            // Convertir la note en string et normaliser (enlever les .0)
+            $rating = (float)$review->rating;
+            $ratingKey = $rating == floor($rating) ? (string)floor($rating) : (string)$rating;
+            
             if (isset($distribution[$ratingKey])) {
                 $distribution[$ratingKey]++;
             }

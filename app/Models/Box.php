@@ -20,6 +20,10 @@ class Box extends Model
         'description',
         'base_price',
         'active',
+        'quantity',
+        'available_from',
+        'details',
+        'delivery',
         'box_category_id',
     ];
 
