@@ -20,7 +20,7 @@ class SubscriptionTypeSeeder extends Seeder
 
         SubscriptionType::create([
             'label' => 'Abonnement mystère',
-            'description' => "Recevoir une boîte mystère tous les 3 mois (cette boîte ne figurera aux autres box découvertes ensuite.)\n\nAimez les surprises et l'inattendu ? Découvrez notre Box Mystère : une expérience unique à chaque envoi.\n\nRecevez une surprise supplémentaire chaque mois — laissez la curiosité faire le premier pas.",
+            'description' => "Recevoir une boîte mystère tous les 3 mois (cette boîte ne figure pas encore parmis les boîtes connues.)\n\nAimez les surprises et l'inattendu ? Découvrez notre Box Mystère : une expérience unique à chaque envoi.\n\nRecevez une surprise supplémentaire chaque mois — laissez la curiosité faire le premier pas.",
             'price' => 29.99,
             'recurrence' => 'quarterly',
             'delivery' => 'Livraison trimestrielle surprise • Expédition aléatoire entre le 1er et 15 du mois • Contenu exclusif non disponible ailleurs • Livraison gratuite en France et Europe • Emballage spécial mystère',
