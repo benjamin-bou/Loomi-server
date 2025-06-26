@@ -85,7 +85,8 @@ class ReviewController extends Controller
 
         // Vérifier si l'utilisateur a déjà laissé un avis pour cette boîte
         $existingReview = Review::where('user_id', $user->id)
-            ->where('box_id', $boxId)
+            ->where('reviewable_type', \App\Models\Box::class)
+            ->where('reviewable_id', $boxId)
             ->first();
 
         if ($existingReview) {
@@ -97,12 +98,13 @@ class ReviewController extends Controller
         try {
             $review = Review::create([
                 'user_id' => $user->id,
-                'box_id' => $boxId,
+                'reviewable_type' => \App\Models\Box::class,
+                'reviewable_id' => $boxId,
                 'rating' => $validatedData['rating'],
                 'comment' => $validatedData['comment'],
             ]);
 
-            $review->load(['user', 'box']);
+            $review->load(['user', 'reviewable']);
 
             return response()->json([
                 'message' => 'Avis créé avec succès',
@@ -157,8 +159,9 @@ class ReviewController extends Controller
         }
 
         $review = Review::where('user_id', $user->id)
-            ->where('box_id', $boxId)
-            ->with(['user', 'box'])
+            ->where('reviewable_type', \App\Models\Box::class)
+            ->where('reviewable_id', $boxId)
+            ->with(['user', 'reviewable'])
             ->first();
 
         if (!$review) {
@@ -221,7 +224,8 @@ class ReviewController extends Controller
             return response()->json(['error' => 'Boîte non trouvée'], 404);
         }
 
-        $reviews = Review::where('box_id', $boxId)
+        $reviews = Review::where('reviewable_type', \App\Models\Box::class)
+            ->where('reviewable_id', $boxId)
             ->with(['user' => function ($query) {
                 $query->select('id', 'first_name', 'last_name');
             }])
