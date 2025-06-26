@@ -14,13 +14,16 @@ return new class extends Migration
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('box_id')->constrained('boxes')->onDelete('cascade');
-            $table->integer('rating')->unsigned()->min(1)->max(5);
+
+            // Relation polymorphique pour pouvoir lier des avis aux boîtes et aux abonnements
+            $table->morphs('reviewable'); // Crée reviewable_id et reviewable_type
+
+            $table->decimal('rating', 2, 1)->unsigned(); // 0.5 à 5.0
             $table->text('comment')->nullable();
             $table->timestamps();
 
-            // Un utilisateur ne peut laisser qu'un seul avis par boîte
-            $table->unique(['user_id', 'box_id']);
+            // Un utilisateur ne peut laisser qu'un seul avis par élément (boîte ou abonnement)
+            $table->unique(['user_id', 'reviewable_id', 'reviewable_type']);
         });
     }
 

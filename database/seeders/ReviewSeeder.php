@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Review;
 use App\Models\Box;
+use App\Models\SubscriptionType;
 use App\Models\User;
 
 class ReviewSeeder extends Seeder
@@ -17,8 +18,9 @@ class ReviewSeeder extends Seeder
         // Supprimer tous les avis existants
         Review::query()->delete();
 
-        // Récupérer toutes les boîtes et tous les utilisateurs
+        // Récupérer toutes les boîtes, types d'abonnement et utilisateurs
         $boxes = Box::all();
+        $subscriptionTypes = SubscriptionType::all();
         $users = User::all();
 
         if ($users->isEmpty()) {
@@ -27,7 +29,7 @@ class ReviewSeeder extends Seeder
         }
 
         // Avis prédéfinis par type de boîte
-        $reviewsData = [
+        $boxReviewsData = [
             'Box couture' => [
                 [
                     'rating' => 5.0,
@@ -114,16 +116,49 @@ class ReviewSeeder extends Seeder
             ],
         ];
 
+        // Avis prédéfinis pour les types d'abonnement
+        $subscriptionReviewsData = [
+            'Abonnement mensuel' => [
+                [
+                    'rating' => 5.0,
+                    'comment' => 'Parfait ! Je reçois ma box chaque mois à date fixe et la qualité est toujours au rendez-vous. Le service client est très réactif en cas de besoin.',
+                ],
+                [
+                    'rating' => 4.5,
+                    'comment' => 'Très satisfaite de cet abonnement. Les box arrivent toujours en parfait état et à temps. J\'adore découvrir de nouveaux projets créatifs chaque mois.',
+                ],
+                [
+                    'rating' => 4.0,
+                    'comment' => 'Bon concept d\'abonnement, livraison fiable. Parfois j\'aimerais pouvoir choisir le thème du mois mais dans l\'ensemble c\'est une belle découverte.',
+                ],
+            ],
+            'Abonnement mystère' => [
+                [
+                    'rating' => 5.0,
+                    'comment' => 'Quelle surprise à chaque fois ! J\'adore ne pas savoir ce que je vais recevoir. Les box mystères contiennent toujours des projets originaux et uniques.',
+                ],
+                [
+                    'rating' => 4.5,
+                    'comment' => 'L\'effet surprise est génial et le contenu est toujours de qualité. Parfait pour sortir de sa zone de confort créative !',
+                ],
+                [
+                    'rating' => 4.0,
+                    'comment' => 'Concept original qui me fait découvrir de nouvelles techniques. Seul bémol : pas de choix possible si on n\'aime pas le thème.',
+                ],
+            ],
+        ];
+
+        // Créer des avis pour les boîtes
         foreach ($boxes as $box) {
             // Nombre aléatoire d'avis entre 0 et 3
             $numberOfReviews = rand(0, 3);
 
-            if ($numberOfReviews > 0 && isset($reviewsData[$box->name])) {
+            if ($numberOfReviews > 0 && isset($boxReviewsData[$box->name])) {
                 // Sélectionner des utilisateurs aléatoires
                 $selectedUsers = $users->random(min($numberOfReviews, $users->count()));
 
                 // Mélanger les avis disponibles pour cette boîte
-                $availableReviews = collect($reviewsData[$box->name])->shuffle();
+                $availableReviews = collect($boxReviewsData[$box->name])->shuffle();
 
                 foreach ($selectedUsers as $index => $user) {
                     if ($index < $availableReviews->count()) {
@@ -131,7 +166,8 @@ class ReviewSeeder extends Seeder
 
                         Review::create([
                             'user_id' => $user->id,
-                            'box_id' => $box->id,
+                            'reviewable_id' => $box->id,
+                            'reviewable_type' => Box::class,
                             'rating' => $reviewData['rating'],
                             'comment' => $reviewData['comment'],
                             'created_at' => now()->subDays(rand(1, 60)), // Avis créés dans les 60 derniers jours
@@ -142,7 +178,39 @@ class ReviewSeeder extends Seeder
             }
         }
 
-        $totalReviews = Review::count();
-        $this->command->info("$totalReviews avis créés avec succès pour les boîtes.");
+        // Créer des avis pour les types d'abonnement
+        foreach ($subscriptionTypes as $subscriptionType) {
+            // Nombre aléatoire d'avis entre 1 et 3 pour les abonnements
+            $numberOfReviews = rand(1, 3);
+
+            if (isset($subscriptionReviewsData[$subscriptionType->label])) {
+                // Sélectionner des utilisateurs aléatoires (différents de ceux des boîtes)
+                $availableUsers = $users->shuffle();
+                $selectedUsers = $availableUsers->take(min($numberOfReviews, $users->count()));
+
+                // Mélanger les avis disponibles pour ce type d'abonnement
+                $availableReviews = collect($subscriptionReviewsData[$subscriptionType->label])->shuffle();
+
+                foreach ($selectedUsers as $index => $user) {
+                    if ($index < $availableReviews->count()) {
+                        $reviewData = $availableReviews[$index];
+
+                        Review::create([
+                            'user_id' => $user->id,
+                            'reviewable_id' => $subscriptionType->id,
+                            'reviewable_type' => SubscriptionType::class,
+                            'rating' => $reviewData['rating'],
+                            'comment' => $reviewData['comment'],
+                            'created_at' => now()->subDays(rand(1, 90)), // Avis créés dans les 90 derniers jours
+                            'updated_at' => now()->subDays(rand(1, 90)),
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $totalBoxReviews = Review::where('reviewable_type', Box::class)->count();
+        $totalSubscriptionReviews = Review::where('reviewable_type', SubscriptionType::class)->count();
+        $this->command->info("$totalBoxReviews avis créés pour les boîtes et $totalSubscriptionReviews avis créés pour les abonnements.");
     }
 }

@@ -17,6 +17,11 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0);
             $table->string('recurrence')->default('monthly'); // ex: 'monthly', 'quarterly', etc.
+
+            // Nouveaux champs pour les détails comme les boîtes
+            $table->text('delivery')->nullable(); // Informations de livraison
+            $table->text('return_policy')->nullable(); // Politique de retour/gestion
+
             $table->timestamps();
         });
     }

@@ -398,6 +398,60 @@ class ReviewController extends Controller
     }
 
     /**
+     * Obtenir les avis pour un type d'abonnement
+     */
+    public function getSubscriptionReviews($subscriptionTypeId)
+    {
+        $subscriptionType = \App\Models\SubscriptionType::find($subscriptionTypeId);
+
+        if (!$subscriptionType) {
+            return response()->json(['error' => 'Type d\'abonnement non trouvé'], 404);
+        }
+
+        $reviews = Review::where('reviewable_type', \App\Models\SubscriptionType::class)
+            ->where('reviewable_id', $subscriptionTypeId)
+            ->with(['user' => function ($query) {
+                $query->select('id', 'first_name', 'last_name');
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $averageRating = $reviews->avg('rating');
+        $totalReviews = $reviews->count();
+
+        return response()->json([
+            'reviews' => $reviews,
+            'average_rating' => round($averageRating, 1),
+            'total_reviews' => $totalReviews,
+            'rating_distribution' => $this->getRatingDistribution($reviews)
+        ], 200);
+    }
+
+    /**
+     * Vérifier si un utilisateur a déjà un avis pour un abonnement
+     */
+    public function getUserSubscriptionReview(Request $request, $subscriptionTypeId)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $review = Review::where('user_id', $user->id)
+            ->where('reviewable_type', \App\Models\SubscriptionType::class)
+            ->where('reviewable_id', $subscriptionTypeId)
+            ->with(['user', 'reviewable'])
+            ->first();
+
+        if (!$review) {
+            return response()->json(['review' => null], 200);
+        }
+
+        return response()->json(['review' => $review], 200);
+    }
+
+    /**
      * Vérifier si un utilisateur a reçu une boîte spécifique
      */
     private function hasUserReceivedBox($userId, $boxId)

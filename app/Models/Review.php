@@ -11,7 +11,8 @@ class Review extends Model
 
     protected $fillable = [
         'user_id',
-        'box_id',
+        'reviewable_id',
+        'reviewable_type',
         'rating',
         'comment',
     ];
@@ -29,10 +30,18 @@ class Review extends Model
     }
 
     /**
-     * Relation vers la boîte évaluée
+     * Relation polymorphique vers l'élément évalué (Box ou Subscription)
+     */
+    public function reviewable()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * Relation vers la boîte évaluée (pour la compatibilité)
      */
     public function box()
     {
-        return $this->belongsTo(Box::class);
+        return $this->reviewable();
     }
 }

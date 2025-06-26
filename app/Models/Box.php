@@ -36,11 +36,11 @@ class Box extends Model
     }
 
     /**
-     * Relation vers les avis de la boîte
+     * Relation vers les avis de la boîte (relation polymorphique)
      */
     public function reviews()
     {
-        return $this->hasMany(Review::class);
+        return $this->morphMany(Review::class, 'reviewable');
     }
 
     /**

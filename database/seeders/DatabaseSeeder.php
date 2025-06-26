@@ -22,11 +22,11 @@ class DatabaseSeeder extends Seeder
             BoxSeeder::class,
             BoxImageSeeder::class, // Nouveau seeder pour les images
             BoxItemSeeder::class, // Après avoir créé les boîtes et les items
-            ReviewSeeder::class, // Créer les avis après les boîtes et utilisateurs
+            SubscriptionTypeSeeder::class, // Créer les types d'abonnement avant les avis
+            ReviewSeeder::class, // Créer les avis après les boîtes et types d'abonnement
             GiftCardSeeder::class,
             PaymentMethodTypeSeeder::class,
             OrderSeeder::class,
-            SubscriptionTypeSeeder::class,
             ArticlesSeeder::class, // Nouveau seeder pour les articles
         ]);
     }

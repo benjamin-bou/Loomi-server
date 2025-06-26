@@ -26,6 +26,7 @@ Route::post('gift-cards/activate', [GiftCardController::class, 'activate']);
 Route::get('payment-methods', [OrderController::class, 'getPaymentMethods']);
 
 Route::get('/boxes/{id}/reviews', [ReviewController::class, 'getBoxReviews']);
+Route::get('/subscriptions/{id}/reviews', [ReviewController::class, 'getSubscriptionReviews']);
 
 // Routes pour les articles (blog)
 Route::get('/articles', [ArticleController::class, 'index']);
@@ -54,6 +55,7 @@ Route::middleware('auth:api')->group(function () {
     // Routes pour les avis
     Route::post('/reviews', [ReviewController::class, 'store']);
     Route::get('/reviews/user/{boxId}', [ReviewController::class, 'getUserReview']);
+    Route::get('/reviews/user/subscription/{subscriptionTypeId}', [ReviewController::class, 'getUserSubscriptionReview']);
     Route::put('/reviews/{id}', [ReviewController::class, 'update']);
     Route::delete('/reviews/{id}', [ReviewController::class, 'destroy']);
 });
