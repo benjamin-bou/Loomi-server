@@ -443,11 +443,29 @@ class ReviewController extends Controller
             '0.5' => 0,
         ];
 
+        $totalReviews = $reviews->count();
+
+        if ($totalReviews === 0) {
+            return $distribution;
+        }
+
+        // Compter les avis par note
         foreach ($reviews as $review) {
-            $ratingKey = (string)$review->rating;
-            if (isset($distribution[$ratingKey])) {
-                $distribution[$ratingKey]++;
+            $rating = $review->rating;
+
+            // Convertir "5.0" en "5", "4.0" en "4", etc., mais garder "4.5", "3.5", etc.
+            if (str_ends_with($rating, '.0')) {
+                $rating = substr($rating, 0, -2);
             }
+
+            if (isset($distribution[$rating])) {
+                $distribution[$rating]++;
+            }
+        }
+
+        // Convertir en pourcentages
+        foreach ($distribution as $rating => $count) {
+            $distribution[$rating] = round(($count / $totalReviews) * 100);
         }
 
         return $distribution;

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             BoxSeeder::class,
             BoxImageSeeder::class, // Nouveau seeder pour les images
             BoxItemSeeder::class, // Après avoir créé les boîtes et les items
+            ReviewSeeder::class, // Créer les avis après les boîtes et utilisateurs
             GiftCardSeeder::class,
             PaymentMethodTypeSeeder::class,
             OrderSeeder::class,
